@@ -12,23 +12,12 @@
     }
   ],
   "require": {
-    "php": "^7.0|<=8.*",
-    "ext-curl": "*"
-  },
-  "require-dev": {
-  },
-  "conflict": {
-    "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0"
-  },
-  "suggest": {
+    "php": "^7.0|<=8.*"
   },
   "autoload": {
     "psr-4": { "Lcli\\AppVcs\\": "src/" },
     "exclude-from-classmap": [
       "/Tests/"
     ]
-  },
-  "minimum-stability": "dev",
-  "extra": {
   }
 }
