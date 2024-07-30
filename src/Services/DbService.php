@@ -1,6 +1,6 @@
 <?php
 
-namespace Lcli\AppVcs\Services;
+namespace AppVcs\Services;
 
 interface DbService {
  

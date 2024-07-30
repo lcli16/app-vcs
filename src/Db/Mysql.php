@@ -11,24 +11,19 @@ class Mysql implements DbService {
 	public function __construct() {
 		// 数据库配置
 		$database = Helpers::getDbConfig();
-		if (isset($database['host'])){
-			$host = $database[ 'host' ];
-			$port = $database[ 'port' ];
-			$db = $database[ 'database' ];
-			$user = $database[ 'username' ];
-			$pass = $database[ 'password' ];
-			
-			// 创建连接
-			$conn = new \mysqli($host, $user, $pass, $db, $port);
-			// 检查连接
-			if ($conn->connect_error) {
-				throw new  AppVcsException('数据库连接失败');
-			}
-			$this->conn = $conn;
-		}else{
-			$this->conn = null;
-		}
+		$host = $database[ 'host' ];
+		$port = $database[ 'port' ];
+		$db = $database[ 'database' ];
+		$user = $database[ 'username' ];
+		$pass = $database[ 'password' ];
 		
+		// 创建连接
+		$conn = new mysqli($host, $user, $pass, $db, $port);
+		// 检查连接
+		if ($conn->connect_error) {
+			throw new  AppVcsException('数据库连接失败');
+		}
+		$this->conn = $conn;
 	}
 	
 	public function query($sql)
@@ -43,9 +38,6 @@ class Mysql implements DbService {
 	
 	public function __destruct()
 	{
-		if ($this->conn){
-			$this->conn->close();
-		}
-		
+		$this->conn->close();
 	}
 }
