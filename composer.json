@@ -3,11 +3,10 @@
   "type": "library",
   "description": "PHP Web System Vcs manager",
   "keywords": ["vcs", "version code system"],
-  "homepage": "/",
   "license": "MIT",
   "authors": [
     {
-      "name": "liangbl",
+      "name": "1cli",
       "email": "912551778@qq.com"
     }
   ],
