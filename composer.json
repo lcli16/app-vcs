@@ -1,21 +1,10 @@
 {
   "name": "lcli/app-vcs",
-  "type": "library",
-  "version": "1.0.0-dev",
   "description": "PHP Web System Vcs manager",
-  "keywords": ["vcs", "version code system"],
+  "keywords": ["app-vcs","vcs", "version code system"],
   "license": "Apache-2.0",
-  "authors": [
-    {
-      "name": "1cli",
-      "email": "912551778@qq.com"
-    }
-  ],
   "require": {
-    "php": ">=7.0"
   },
-  "minimum-stability": "dev",
-  "prefer-stable": "dev",
   "autoload": {
     "psr-4": { "Lcli\\AppVcs\\": "src/" },
     "exclude-from-classmap": [
