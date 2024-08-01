@@ -13,4 +13,12 @@ class FileSystem {
 	{
 		return file_put_contents($filePath, $contents);
 	}
+	
+	public static function delete($filePath)
+	{
+		if (file_exists($filePath) && is_file($filePath) && !is_dir($filePath)){
+			return unlink($filePath);
+		}
+		return false;
+	}
 }

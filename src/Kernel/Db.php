@@ -8,24 +8,17 @@ use Lcli\AppVcs\Helpers;
 class Db {
 	private static $instance = null;
 	private static $driver = 'mysql';
-	public static function instance()
+	public static function instance($config = [])
 	{
-		$driver = self::$driver;
-		$instance = new Mysql();
+		$driver = isset($config['driver'])?$config['driver']:'mysql';
+		$instance = new Mysql($config);
 		if (self::$instance === null) {
 			self::$instance = $instance;
 		}
 		return self::$instance;
 	}
 	
-	private function __construct() {
-		$db = Helpers::config('database');
-		$driver = $db['driver'];
-		if (!isset($driver)){
-			$driver = 'mysql';
-		}
-		self::$driver = $driver;
-	}
+ 
 	private function __clone() {}
 	
 	private function __wakeup() {}
