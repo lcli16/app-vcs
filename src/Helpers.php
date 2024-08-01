@@ -84,7 +84,7 @@ class Helpers {
 	public static function getDatabaseSqlPath($config=[])
 	{
 		$rootPath = self::getTempFilePath($config);
-		$backupPath = $rootPath.'/databases/upgrade';
+		$backupPath = $rootPath.'/database/upgrade';
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		return $backupPath;
 	}
