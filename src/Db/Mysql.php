@@ -8,9 +8,9 @@ use Lcli\AppVcs\AppVcsException;
 
 class Mysql implements DbService {
 	private $conn = null;
-	public function __construct() {
+	public function __construct($config=[]) {
 		// 数据库配置
-		$database = Helpers::getDbConfig();
+		$database = Helpers::getDbConfig($config);
 		$host = $database[ 'host' ];
 		$port = $database[ 'port' ];
 		$db = $database[ 'database' ];
@@ -18,7 +18,7 @@ class Mysql implements DbService {
 		$pass = $database[ 'password' ];
 		
 		// 创建连接
-		$conn = new mysqli($host, $user, $pass, $db, $port);
+		$conn = new \mysqli($host, $user, $pass, $db, $port);
 		// 检查连接
 		if ($conn->connect_error) {
 			throw new  AppVcsException('数据库连接失败');

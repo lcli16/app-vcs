@@ -2,9 +2,14 @@
   "name": "lcli/app-vcs",
   "description": "PHP Web System Vcs manager",
   "keywords": ["app-vcs","vcs", "version code system"],
+  "license": "Apache-2.0",
   "require": {
+    "php": ">=5.6"
   },
   "autoload": {
-    "psr-4": { "Lcli\\AppVcs\\": "src/" }
+    "psr-4": { "Lcli\\AppVcs\\": "src/" },
+    "exclude-from-classmap": [
+      "/Tests/"
+    ]
   }
 }

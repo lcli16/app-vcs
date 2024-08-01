@@ -3,28 +3,45 @@
 namespace Lcli\AppVcs\Http;
 
 use Lcli\AppVcs\AppVcsException;
+use Lcli\AppVcs\Helpers;
 
 class Request {
-	private  $url = 'http://dev.app-vcs.com/';
-	private  $clientId = '';
-	private $http = null;
-	public function __construct($options) {
+	private $url      = 'http://dev.app-vcs.com/';
+	private $clientId = '';
+	private $http     = null;
+	
+	public function __construct($options)
+	{
 		$clientId = $options['client_id'];
 		if (!$clientId) {
 			throw new AppVcsException('客户id不能为空');
 		}
-		$url = $options['url']??'';
-		if (!$url){
+		$url = $options['url'] ?? '';
+		if (!$url) {
 			throw new AppVcsException("服务地址为空");
 		}
-		$this->url = $url;
+		$this->url      = $url;
 		$this->clientId = $clientId;
-		$this->http = new Http();
+		$this->http     = new Http();
 	}
 	
-	public function check($data)
+	public function config($options)
 	{
-		$url = $this->url."api/appvcs/system/check/{$this->clientId}";
+		
+		$this->url      = Helpers::getServerUrl($options);
+		$this->clientId = Helpers::getClientId($options);
+		if (!$this->url) {
+			throw new AppVcsException('服务地址为空');
+		}
+		if (!$this->clientId) {
+			throw new AppVcsException('客户id不能为空');
+		}
+	}
+	
+	public function check($data, $config = [])
+	{
+		$this->config($config);
+		$url = $this->url . "api/appvcs/system/check/{$this->clientId}";
 		return $this->post($url, $data);
 	}
 	
@@ -36,7 +53,8 @@ class Request {
 	 */
 	public function upgrade($data)
 	{
-		$url = $this->url."api/appvcs/system/upgrade/{$this->clientId}";
+		$this->config($config, $config = []);
+		$url = $this->url . "api/appvcs/system/upgrade/{$this->clientId}";
 		return $this->post($url, $data);
 	}
 	
@@ -60,16 +78,16 @@ class Request {
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
 	private function output($response)
-    {
-	   $resp = json_decode($response, true);
-	   if (!$resp) {
-		   throw new AppVcsException("数据解析失败");
-	   }
-	   $code = $resp['code']??-1;
-	   if (!$code<0){
-		   throw new AppVcsException($resp['msg']??'未知错误');
-	   }
-	   return $resp['data']??[];
-    }
+	{
+		$resp = json_decode($response, true);
+		if (!$resp) {
+			throw new AppVcsException("数据解析失败");
+		}
+		$code = $resp['code'] ?? -1;
+		if (!$code < 0) {
+			throw new AppVcsException($resp['msg'] ?? '未知错误');
+		}
+		return $resp['data'] ?? [];
+	}
 	
 }

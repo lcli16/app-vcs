@@ -6,6 +6,7 @@ use Lcli\AppVcs\Helpers;
 use Lcli\AppVcs\AppVcsException;
 
 class Migrate {
+	 
 	/**
 	 * 数据库迁移
 	 * @param $upgradeFilePath
@@ -27,7 +28,7 @@ class Migrate {
 		foreach ( $statements as $statement ) {
 			if (trim($statement) != '') { // 忽略空语句
 				if (!$conn->query($statement)) {
-					throw new  AppVcsException('数据库更新错误:' . $conn->error);
+					throw new  AppVcsException('数据库更新错误:' . $conn->error());
 				}
 			}
 		}
@@ -45,7 +46,7 @@ class Migrate {
 		switch ($state) {
 			case 'A': // 新增
 			case 'M': // 修改
-				file_put_contents($localFilePath, file_get_contents($upgradeFilePath));
+				@file_put_contents($localFilePath, file_get_contents($upgradeFilePath));
 				break;
 			case 'D': // 删除
 				@unlink($localFilePath);
