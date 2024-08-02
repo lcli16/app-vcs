@@ -21,7 +21,12 @@ class Transaction {
 	
 	public function success($data = null)
 	{
+		$appId = Helpers::getAppId($this->config);
 		Helpers::setVersion($data['version'], $this->config);
+		$version = isset($data['version'])?$data['version']:'';
+		$state = 'success';
+		$result = Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $data ], $this->config);
+		
 		$this->status = 2;
 	}
 	
@@ -29,7 +34,10 @@ class Transaction {
 	{
 		// 失败还原代码
 		Backup::rollback($data, $config);
-		 
+		$state = 'error';
+		$appId = Helpers::getAppId($this->config);
+		$version = isset($data['upgrade']['version'])?$data['upgrade']['version']:'';
+		Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $exception ], $this->config);
 		$this->status = 3;
 	}
 }

@@ -4,6 +4,7 @@ namespace Lcli\AppVcs\Http;
 
 use Lcli\AppVcs\AppVcsException;
 use Lcli\AppVcs\Helpers;
+use function Couchbase\defaultDecoder;
 
 class Request {
 	private $url      = 'http://dev.app-vcs.com/';
@@ -16,7 +17,7 @@ class Request {
 		if (!$clientId) {
 			throw new AppVcsException('客户id不能为空');
 		}
-		$url = $options['url'] ?? '';
+		$url = isset($options['url']) ?$options['url']: '';
 		if (!$url) {
 			throw new AppVcsException("服务地址为空");
 		}
@@ -38,6 +39,26 @@ class Request {
 		}
 	}
 	
+	/**
+	 * 执行回调
+	 * @param $data
+	 * @param $config
+	 * @return array|mixed
+	 * @throws \Lcli\AppVcs\AppVcsException
+	 */
+	public function callback($data, $config = [])
+	{
+		$this->config($config);
+		$url = $this->url . "api/appvcs/callback/{$this->clientId}";
+		return $this->post($url, $data);
+	}
+	/**
+	 * 检查更新
+	 * @param $data
+	 * @param $config
+	 * @return array|mixed
+	 * @throws \Lcli\AppVcs\AppVcsException
+	 */
 	public function check($data, $config = [])
 	{
 		$this->config($config);
@@ -51,9 +72,9 @@ class Request {
 	 * @return array|mixed
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public function upgrade($data)
+	public function upgrade($data, $config = [])
 	{
-		$this->config($config, $config = []);
+		$this->config($config );
 		$url = $this->url . "api/appvcs/system/upgrade/{$this->clientId}";
 		return $this->post($url, $data);
 	}
@@ -83,11 +104,11 @@ class Request {
 		if (!$resp) {
 			throw new AppVcsException("数据解析失败");
 		}
-		$code = $resp['code'] ?? -1;
-		if (!$code < 0) {
-			throw new AppVcsException($resp['msg'] ?? '未知错误');
+		$code = isset($resp['code']) ?$resp['code']: -1;
+		if ($code < 0) {
+			throw new AppVcsException(isset($resp['msg']) ?$resp['msg']: '未知错误');
 		}
-		return $resp['data'] ?? [];
+		return isset($resp['data']) ?$resp['data']: [];
 	}
 	
 }

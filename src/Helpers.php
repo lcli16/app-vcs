@@ -25,31 +25,8 @@ class Helpers {
 		return $config;
 	}
 	
-	
-	
-	/**
-	 * 设置配置
-	 * @param $options
-	 * @return mixed
-	 */
-	public static function setConfig($options)
-	{
-		if ($config) {
-			if (is_array($config)){
-				$config = $options;
-				
-			}else{
-				// 配置文件
-				$configFile = include_once $options;
-				$config = $configFile;
-			}
-		}else{
-			$config = [];
-		}
-		return $config;
-	}
-	
-	public static function getWorkPath()
+ 
+	public static function getWorkPath($config=[])
 	{
 		$rootPath = self::getRootPath($config);
 		$workPath = $rootPath.'/'.static::$workPath;

@@ -40,7 +40,7 @@ class Kernel {
 		}
 		try {
 			// 操作更新
-			$files = $result[ 'files' ] ?? [];
+			$files = isset($result['files']) ?$result[ 'files' ]: [];
 			$url = $result[ 'url' ];
 			$fileName = isset($result[ 'fileName' ])?$result[ 'fileName' ]:'app-vcs-upgrade.zip';
 			$tempFilePath = Helpers::getTempFilePath($config);
@@ -74,7 +74,8 @@ class Kernel {
 				}
 				
 				// 2.备份数据库
-				$backup = $result['config']['backup']['database']['tables']??[];
+				$issetTables = isset($result['config']['backup']['database']['tables']);
+				$backup = $issetTables?$result['config']['backup']['database']['tables']:[];
 				$backupStatus = Backup::database($backup);
 				if (!$backupStatus){
 					throw new  AppVcsException('升级失败:备份sql失败');
@@ -113,19 +114,28 @@ class Kernel {
 					}
 					
 				}
-			} 
+			}
+			 
 			// 提交事务
 			$transction->success($result);
 			return true;
-		} catch (\Error|\Exception|AppVcsException $e){
+		} catch (\Error $e){
+			self::throwError($result, $transction, $config, $e);
+		} catch (\Exception $e){
 			// dump($e);die;
+			
 			// 回滚程序
-			$errorData = [
-				'upgrade' => $result
-			];
-			$transction->rollback($errorData, $config, $e);
-			throw new AppVcsException($e->getMessage());
+			self::throwError($result, $transction, $config, $e);
 		}
+	}
+	
+	public static function throwError($result, $transction, $config, $e)
+	{
+		$errorData = [
+			'upgrade' => $result,
+		];
+		$transction->rollback($errorData, $config, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
+		throw new AppVcsException($e->getMessage());
 	}
 	
 	
