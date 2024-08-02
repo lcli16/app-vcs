@@ -58,62 +58,64 @@ class Kernel {
 			$zipFile = $tempFilePath . '/' . $fileName;
 			
 			// 下载远程文件并保存到本地
-			file_put_contents($zipFile, file_get_contents($url));
+			$filePutRsult = @file_put_contents($zipFile, file_get_contents($url));
 			
 			$destinationDir = $tempFilePath;
-			
-			$zip = new ZipArchive();
-			if ($zip->open($zipFile) === TRUE) {
-				$zip->extractTo($destinationDir);
-				
-				// 1.备份网站文件+数据库
-				$backupStatus = Backup::file($files);
-			
-				if (!$backupStatus){
-					throw new  AppVcsException('升级失败:备份文件失败');
+			if ($filePutRsult){
+				$zip = new ZipArchive();
+				if ($zip->open($zipFile) === TRUE) {
+					$zip->extractTo($destinationDir);
 				}
-				
-				// 2.备份数据库
-				$issetTables = isset($result['config']['backup']['database']['tables']);
-				$backup = $issetTables?$result['config']['backup']['database']['tables']:[];
-				$backupStatus = Backup::database($backup);
-				if (!$backupStatus){
-					throw new  AppVcsException('升级失败:备份sql失败');
-				}
-			 
 				$zip->close();
-				// 3.开始执行升级
-				foreach ( $files as $file ) {
-					$state = $file[ 'state' ];
-					$path = $file[ 'path' ];
-					$type = $file[ 'type' ];
-					if (!$path) {
-						continue;
-					}
-					
-					// 获取更新文件
-					$upgradeFilePath = $destinationDir . '/' . $path;
-					// 替换更新
-					$localFilePath = $rootPath . '/' . $path;
-					// 安全文件只运行不下载
-					$safeFileOrDirs = isset($result['config']['migrate']['safe_files'])?$result['config']['migrate']['safe_files']:[Helpers::getDatabaseSqlPath()];
-					if (!in_array($path, $safeFileOrDirs)){
-						switch ($type) {
-							case 'file':
-								Migrate::file($state, $localFilePath, $upgradeFilePath);
-								break;
-							case 'sql': // 数据库迁移
-								
-								Migrate::database($upgradeFilePath);
-								break;
-							case 'config': // 配置更新,
-							default: // 业务数据更新
-								Migrate::file($state, $localFilePath, $upgradeFilePath);
-								break;
-						}
-					}
-					
+			}
+			
+			// 1.备份网站文件+数据库
+			$backupStatus = Backup::file($files);
+			
+			if (!$backupStatus){
+				throw new  AppVcsException('升级失败:备份文件失败');
+			}
+			
+			// 2.备份数据库
+			$issetTables = isset($result['config']['backup']['database']['tables']);
+			$backup = $issetTables?$result['config']['backup']['database']['tables']:[];
+			$backupStatus = Backup::database($backup);
+			if (!$backupStatus){
+				throw new  AppVcsException('升级失败:备份sql失败');
+			}
+			
+			
+			// 3.开始执行升级
+			foreach ( $files as $file ) {
+				$state = $file[ 'state' ];
+				$path = $file[ 'path' ];
+				$type = $file[ 'type' ];
+				if (!$path) {
+					continue;
 				}
+				
+				// 获取更新文件
+				$upgradeFilePath = $destinationDir . '/' . $path;
+				// 替换更新
+				$localFilePath = $rootPath . '/' . $path;
+				// 安全文件只运行不下载
+				$safeFileOrDirs = isset($result['config']['migrate']['safe_files'])?$result['config']['migrate']['safe_files']:[Helpers::getDatabaseSqlPath()];
+				if (!in_array($path, $safeFileOrDirs)){
+					switch ($type) {
+						case 'file':
+							Migrate::file($state, $localFilePath, $upgradeFilePath);
+							break;
+						case 'sql': // 数据库迁移
+							
+							Migrate::database($upgradeFilePath);
+							break;
+						case 'config': // 配置更新,
+						default: // 业务数据更新
+							Migrate::file($state, $localFilePath, $upgradeFilePath);
+							break;
+					}
+				}
+				
 			}
 			 
 			// 提交事务
