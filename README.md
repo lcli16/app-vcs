@@ -34,7 +34,7 @@
   </a>
 </p>
 
-### 3.1 下载版本管理PHP依赖包:
+### 下载版本管理PHP依赖包:
 ```bash
 composer require lcli/app-vcs
 ```
@@ -78,21 +78,8 @@ composer config -g repo.packagist composer https://repo.packagist.org
 ## 🌐 使用说明
  
 ⚠️只支持php的系统接入, 其他语言,需要自行编写逻辑.
-```mind
-要求:
-php:>=5.6
-建议:
-建议使用composer管理依赖包
-```
-### 3.1 下载版本管理PHP依赖包:
-```bash
-composer require lcli/app-vcs
-```
-⚠️要注意的是, 找不到版本包,请切换成官方镜像源即可, 命令如下:
-```bash
-composer config -g repo.packagist composer https://repo.packagist.org
-```
-### 3.2 配置
+ 
+###  配置
 安装完成后, 需要进行配置, 自行生成一个名为:**appvcs.php**的文件, 并配置好对应的参数, 配置说明:
 ```php
 
@@ -226,9 +213,6 @@ ALTER TABLE lmq_demo
 ##  🔧 系统安装
 
 ### 环境要求
-
-
-- **Laravel 5.1 版本**
     - `PHP 5.6` `PHP 7.0`
     - `MySQL` `>=5.0`
     - `PHP Extension`：`Fileinfo`
