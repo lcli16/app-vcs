@@ -22,6 +22,7 @@
   },
   "suggest": {
   },
+  "bin": ["bin/appvcs"],
   "autoload": {
     "psr-4": { "Lcli\\AppVcs\\": "src/" },
     "exclude-from-classmap": [

@@ -19,6 +19,5 @@ if (!file_exists($dir.'/autoload.php')) {
 }
 
 require $dir.'/autoload.php';
-// var_dump($dir);die;
 $invoker = new Invoker();
 exit($invoker(...$argv) ? 0 : 1);
