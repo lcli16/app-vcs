@@ -13,6 +13,7 @@ class Request {
 	
 	public function __construct($options)
 	{
+		
 		$clientId = $options['client_id'];
 		if (!$clientId) {
 			throw new AppVcsException('客户id不能为空');
@@ -37,6 +38,20 @@ class Request {
 		if (!$this->clientId) {
 			throw new AppVcsException('客户id不能为空');
 		}
+	}
+	/**
+	 * 注册客户端
+	 * @param $data
+	 * @param $config
+	 * @return array|mixed
+	 * @throws \Lcli\AppVcs\AppVcsException
+	 */
+	public function register($data, $config = [])
+	{
+		$clientId = $data['client_id'];
+		$url = $this->url . "api/appvcs/client/register/{$clientId}";
+		
+		return $this->post($url, $data);
 	}
 	
 	/**
@@ -104,6 +119,7 @@ class Request {
 		if (!$resp) {
 			throw new AppVcsException("数据解析失败");
 		}
+		
 		$code = isset($resp['code']) ?$resp['code']: -1;
 		if ($code < 0) {
 			throw new AppVcsException(isset($resp['msg']) ?$resp['msg']: '未知错误');

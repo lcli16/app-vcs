@@ -3,7 +3,9 @@
 namespace Lcli\AppVcs;
 
 class Helpers {
-	private static $workPath = 'public/version/AppVcs';
+	public static $workPath = 'public/vendor/AppVcs';
+	
+	public static $config = [];
 	public static function config($name = null)
 	{
 		
@@ -15,11 +17,26 @@ class Helpers {
 			}
 			
 		} else {
-			$default = include_once __DIR__ . '/Config/config.php';
+			$userConfig = '../../../../config/appvcs.php';
+			
+			if (file_exists($userConfig)){
+			
+				$configs = include_once $userConfig;
+			}else{
+				$configs = include_once __DIR__ . '/Config/config.php';
+				
+			}
+			
 			if (!$name) {
-				$config = $default;
+				
+				$config = $configs;
 			} else {
-				$config = $default[ $name ];
+				 if (is_array($configs)){
+					 $config = $configs[ $name ];
+				 }else{
+					 $config = '';
+				 }
+				
 			}
 		}
 		return $config;
@@ -28,8 +45,8 @@ class Helpers {
  
 	public static function getWorkPath($config=[])
 	{
-		$rootPath = self::getRootPath($config);
-		$workPath = $rootPath.'/'.static::$workPath;
+		$rootPath = static::getRootPath($config);
+		$workPath = $rootPath.'/'.static::$workPath."/".$config['app_id'];
 		return $workPath;
 	}
 	
@@ -40,7 +57,15 @@ class Helpers {
 		is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
 		return $tempFilePath;
 	}
-	
+	public static function getProjectPath($config=[])
+	{
+		if (isset($config['project_path'])){
+			return $config['project_path'];
+		}
+		$rootPath = Helpers::config('root_path');
+		is_dir($rootPath) or mkdir($rootPath, 0755, true);
+		return $rootPath;
+	}
 	public static function getRootPath($config=[])
 	{
 		if (isset($config['root_path'])){
@@ -68,8 +93,18 @@ class Helpers {
 	public static function getBackupPath($config=[])
 	{
 		$rootPath = self::getWorkPath($config);
-		$backupPath = $rootPath.'/backup';
+		$configBackupPath = self::config('backup_path');
+		if ($configBackupPath){
+			$backupPath = $configBackupPath;
+		}else{
+			// 在服务端目录上一级保存, 以免出现全量发布, 未指定项目目录或默认目录导致备份文件一同被删除情况
+			$backupPath = $rootPath.'/backup';
+		}
+		
+		
+		
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
+		
 		return $backupPath;
 	}
 	

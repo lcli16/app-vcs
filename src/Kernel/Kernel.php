@@ -18,7 +18,7 @@ class Kernel {
 	 */
 	public static function check($appId, $version = null, $config=[])
 	{
-		return \Lcli\AppVcs\Kernel\Request::instance()->check([ 'appId' => $appId, 'version' => $version ], $config);
+		return \Lcli\AppVcs\Kernel\Request::instance($config)->check([ 'appId' => $appId, 'version' => $version ], $config);
 	}
 	
 	/**
@@ -34,10 +34,13 @@ class Kernel {
 		// 开始事务
 		$transction = new Transaction($config);
 		$transction->start(['appId' => $appId, 'version' => $version]);
-		$result = \Lcli\AppVcs\Kernel\Request::instance()->upgrade([ 'appId' => $appId, 'version' => $version ], $config);
+		
+		$result = \Lcli\AppVcs\Kernel\Request::instance($config)->upgrade([ 'appId' => $appId, 'version' => $version ], $config);
 		if (!$result){
 			throw new  AppVcsException('获取版本信息失败');
 		}
+		
+		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
 		try {
 			// 操作更新
 			$files = isset($result['files']) ?$result[ 'files' ]: [];
@@ -70,20 +73,36 @@ class Kernel {
 			}
 			
 			// 1.备份网站文件+数据库
-			$backupStatus = Backup::file($files);
-			
+			$config['result'] = $result;
+		 
+			$backupStatus = Backup::file($files, $config);
+		
 			if (!$backupStatus){
 				throw new  AppVcsException('升级失败:备份文件失败');
 			}
 			
 			// 2.备份数据库
-			$issetTables = isset($result['config']['backup']['database']['tables']);
-			$backup = $issetTables?$result['config']['backup']['database']['tables']:[];
-			$backupStatus = Backup::database($backup);
-			if (!$backupStatus){
-				throw new  AppVcsException('升级失败:备份sql失败');
+			$issetTables = isset($versionInfo['backup_tables']);
+			$backup = $issetTables?$versionInfo['backup_tables']:[];
+			if ($backup){
+				$backupStatus = Backup::database($backup, $config, $version);
+				if (!$backupStatus){
+					throw new  AppVcsException('升级失败:备份sql失败');
+				}
 			}
 			
+			$projectPath  = Helpers::getProjectPath($config);
+			if (!$projectPath){
+				$projectPath = $rootPath;
+			}
+			
+			// 获取发布操作类型:0=按需发布,1=全量发布
+			$publishAction = isset($versionInfo['publish_action'])?$versionInfo['publish_action']:0;
+			
+			if (intval($publishAction) === 1){
+				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
+				FileSystem::clearDir($projectPath);
+			}
 			
 			// 3.开始执行升级
 			foreach ( $files as $file ) {
@@ -96,14 +115,31 @@ class Kernel {
 				
 				// 获取更新文件
 				$upgradeFilePath = $destinationDir . '/' . $path;
-				// 替换更新
-				$localFilePath = $rootPath . '/' . $path;
+				$localFilePath = $projectPath . '/' . $path;
+				
+				
+				
 				// 安全文件只运行不下载
-				$safeFileOrDirs = isset($result['config']['migrate']['safe_files'])?$result['config']['migrate']['safe_files']:[Helpers::getDatabaseSqlPath()];
+				$safeFileOrDirs = [Helpers::getDatabaseSqlPath($config)];
+				if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']){
+					$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
+				}
+				// 过滤文件
+				$filterFiles = isset($versionInfo['filter_files'])?$versionInfo['filter_files']:[];
+				if (!$filterFiles){
+					$filterFiles = [];
+				}
+				if (in_array($path, $filterFiles)){
+					continue;
+				}
+				
+				
 				if (!in_array($path, $safeFileOrDirs)){
+					// var_dump($localFilePath, $upgradeFilePath, $path);
 					switch ($type) {
 						case 'file':
 							Migrate::file($state, $localFilePath, $upgradeFilePath);
+							
 							break;
 						case 'sql': // 数据库迁移
 							
@@ -117,6 +153,14 @@ class Kernel {
 				}
 				
 			}
+			
+			// 如果有脚本指令, 运行脚本
+			$scripts = isset($versionInfo['script'])?$versionInfo['script']:[];
+			if ($scripts && is_array($scripts)){
+				foreach ($scripts as $cmd){
+					shell_exec($cmd);
+				}
+			}
 			 
 			// 提交事务
 			$transction->success($result);
@@ -124,7 +168,7 @@ class Kernel {
 		} catch (\Error $e){
 			self::throwError($result, $transction, $config, $e);
 		} catch (\Exception $e){
-			// dump($e);die;
+			
 			
 			// 回滚程序
 			self::throwError($result, $transction, $config, $e);
@@ -139,6 +183,7 @@ class Kernel {
 		$transction->rollback($errorData, $config, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
 		throw new AppVcsException($e->getMessage());
 	}
+	
 	
 	
 	/**

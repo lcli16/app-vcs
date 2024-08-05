@@ -5,8 +5,8 @@ namespace Lcli\AppVcs\Kernel;
 use Lcli\AppVcs\Helpers;
 
 class Backup {
-	private static $backupFile = [];
-	private static $backupDb   = '';
+	public static $backupFile = [];
+	public static $backupDb   = '';
 	
 	/**
 	 * 备份文件
@@ -17,14 +17,15 @@ class Backup {
 	{
 		$rootPath    = Helpers::getRootPath($config);
 		$backupPath  = Helpers::getBackupPath($config);
+		 $version = Helpers::getVersion($config);
 		$backupFiles = [];
-		
+		 
 		foreach ($upgradeFiles as $file) {
 			$path = $file['path'];
 			if (!$path) {
 				continue;
 			}
-			$filePath      = $backupPath . '/' . $path;
+			$filePath      = $backupPath . '/'. $version.'/' . $path;
 			$tempFilePath = explode('/', $filePath);
 			unset($tempFilePath[count($tempFilePath)-1]);
 			$fileDir = implode('/', $tempFilePath);
@@ -46,7 +47,7 @@ class Backup {
 	 * @param array $tables 需要备份的表名
 	 * @return bool
 	 */
-	public static function database($tables, $config=[])
+	public static function database($tables, $config=[], $version=null)
 	{
 		$tables = array_unique($tables);
 		$backupPath = Helpers::getBackupPath($config);
@@ -58,8 +59,8 @@ class Backup {
 		$username = $database['username'];
 		$password = $database['password'];
 		
-		$backupFileName = date('Ymd') . '_backup.sql';
-		$backupFile     = $backupPath . '/' . $backupFileName;
+		$backupFileName = $version . '_backup.sql';
+		$backupFile     = $backupPath . '/'.$backupFileName;
 		
 		// 构建mysqldump命令
 		$command = "mysqldump  --socket=/tmp/mysql.sock  -u'{$username}' -p'{$password}' {$db} " . implode(' ', $tables) . ">'{$backupFile}'";
@@ -95,6 +96,7 @@ class Backup {
 	protected static function rollbackFile($data=[], $config=[])
 	{
 		$upgradeFiles = self::$backupFile;
+		 
 		$rootPath     = Helpers::getRootPath($config);
 		$backupPath   = Helpers::getBackupPath($config);
 		

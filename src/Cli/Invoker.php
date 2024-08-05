@@ -14,15 +14,30 @@ namespace Lcli\AppVcs\Cli;
 class Invoker
 {
  
-	protected function runWithCli(  array $parameters): bool
+	protected function runWithCli(  array $parameters)
 	{
-		
-		
-		return shell_exec(...$parameters);
+		array_shift($parameters);
+		$cmd = implode(" ", $parameters);
+		return shell_exec($cmd);
 	}
 	
-	public function __invoke(...$parameters): bool
+	public function __invoke(...$parameters)
 	{
-		return $this->runWithCli(  $parameters);
+		
+		$cli = new Cli();
+	 
+		$cli->boot();
+		
+		die;
+		$result =  $this->runWithCli(  $parameters);
+	 
+		
+	
+		exit($result);
+	}
+	
+	public function help()
+	{
+		exit("help");
 	}
 }

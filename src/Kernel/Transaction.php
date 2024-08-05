@@ -21,11 +21,13 @@ class Transaction {
 	
 	public function success($data = null)
 	{
+		$preVersion = Helpers::getVersion($this->config);
 		$appId = Helpers::getAppId($this->config);
 		Helpers::setVersion($data['version'], $this->config);
 		$version = isset($data['version'])?$data['version']:'';
 		$state = 'success';
-		$result = Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $data ], $this->config);
+		
+		$result = Request::instance($this->config)->callback([ 'state' => $state, 'appId' => $appId, 'pre_version'=>$preVersion, 'version' => $version, 'content' => $data ], $this->config);
 		
 		$this->status = 2;
 	}
@@ -37,7 +39,7 @@ class Transaction {
 		$state = 'error';
 		$appId = Helpers::getAppId($this->config);
 		$version = isset($data['upgrade']['version'])?$data['upgrade']['version']:'';
-		Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $exception ], $this->config);
+		Request::instance($this->config)->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $exception ], $this->config);
 		$this->status = 3;
 	}
 }
