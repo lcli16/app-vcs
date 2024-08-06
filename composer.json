@@ -9,7 +9,7 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "Lcli\\AppVcs\\Helpers::generatedConfig",
+      "Lcli\\AppVcs\\Helpers::generatedConfig"
     ]
   },
   "bin": ["bin/appvcs"],
