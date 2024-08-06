@@ -7,6 +7,11 @@
     "php": ">=5.6",
     "wp-cli/php-cli-tools": "0.*"
   },
+  "scripts": {
+    "post-install-cmd": [
+      "Lcli\\AppVcs\\Helpers::generatedConfig",
+    ]
+  },
   "bin": ["bin/appvcs"],
   "autoload": {
     "psr-4": { "Lcli\\AppVcs\\": "src/" },

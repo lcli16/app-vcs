@@ -19,8 +19,8 @@ class AppVcs {
 	 */
 	public   function check($version=null)
 	{
-		$appId = Helpers::getAppId($this->config);
-		return Kernel::check($appId, $version, $this->config);
+		$appId = Helpers::getAppId();
+		return Kernel::check($appId, $version);
 	}
 	
 	/**
@@ -30,12 +30,12 @@ class AppVcs {
 	 */
 	public   function upgrade($version=null)
 	{
-		$appId = Helpers::getAppId($this->config);
-		return Kernel::upgrade($appId, $version, $this->config);
+		$appId = Helpers::getAppId();
+		return Kernel::upgrade($appId, $version);
 	}
 	
 	public function getVersion()
 	{
-		return Kernel::version($this->config);
+		return Kernel::version();
 	}
 }

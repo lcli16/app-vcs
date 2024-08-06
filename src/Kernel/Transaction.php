@@ -9,9 +9,9 @@ class Transaction {
 	public  $data   = [];
 	private $status = 0;
 	
-	public function __construct($options)
+	public function __construct()
 	{
-		$this->config = $options;
+		$this->config = Helpers::config();
 	}
 	
 	public function start($data = null)
@@ -21,25 +21,27 @@ class Transaction {
 	
 	public function success($data = null)
 	{
-		$preVersion = Helpers::getVersion($this->config);
-		$appId = Helpers::getAppId($this->config);
-		Helpers::setVersion($data['version'], $this->config);
+		$preVersion = Helpers::getVersion();
+		$appId = Helpers::getAppId();
+		Helpers::setVersion($data['version']);
 		$version = isset($data['version'])?$data['version']:'';
 		$state = 'success';
 		
-		$result = Request::instance($this->config)->callback([ 'state' => $state, 'appId' => $appId, 'pre_version'=>$preVersion, 'version' => $version, 'content' => $data ], $this->config);
+		$result = Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'pre_version'=>$preVersion, 'version' => $version, 'content' => $data ]);
 		
 		$this->status = 2;
 	}
 	
-	public function rollback($data=null, $config = null, $exception = null)
+	public function rollback($data=null,   $exception = null)
 	{
+		
 		// 失败还原代码
-		Backup::rollback($data, $config);
+		Backup::rollback($data );
+		
 		$state = 'error';
-		$appId = Helpers::getAppId($this->config);
+		$appId = Helpers::getAppId();
 		$version = isset($data['upgrade']['version'])?$data['upgrade']['version']:'';
-		Request::instance($this->config)->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $exception ], $this->config);
+		Request::instance($this->config)->callback([ 'state' => $state, 'appId' => $appId, 'version' => $version, 'content' => $exception ]);
 		$this->status = 3;
 	}
 }

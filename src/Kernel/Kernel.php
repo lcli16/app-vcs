@@ -16,9 +16,9 @@ class Kernel {
 	 * @param $version
 	 * @return array|mixed
 	 */
-	public static function check($appId, $version = null, $config=[])
+	public static function check($appId, $version = null)
 	{
-		return \Lcli\AppVcs\Kernel\Request::instance($config)->check([ 'appId' => $appId, 'version' => $version ], $config);
+		return \Lcli\AppVcs\Kernel\Request::instance()->check([ 'appId' => $appId, 'version' => $version ]);
 	}
 	
 	/**
@@ -29,30 +29,36 @@ class Kernel {
 	 * @return array|mixed
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public static function upgrade($appId, $version = null, $config=[])
+	public static function upgrade($appId, $version = null)
 	{
+		
 		// 开始事务
-		$transction = new Transaction($config);
+		$transction = new Transaction();
+		
 		$transction->start(['appId' => $appId, 'version' => $version]);
 		
-		$result = \Lcli\AppVcs\Kernel\Request::instance($config)->upgrade([ 'appId' => $appId, 'version' => $version ], $config);
+		
+		$result = \Lcli\AppVcs\Kernel\Request::instance()->upgrade([ 'appId' => $appId, 'version' => $version ]);
 		if (!$result){
 			throw new  AppVcsException('获取版本信息失败');
 		}
 		
+		// 保存更新数据
+		$backupDir = Helpers::getBackupPath();
+		Helpers::setUpgradeData($result);
 		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
 		try {
 			// 操作更新
 			$files = isset($result['files']) ?$result[ 'files' ]: [];
 			$url = $result[ 'url' ];
 			$fileName = isset($result[ 'fileName' ])?$result[ 'fileName' ]:'app-vcs-upgrade.zip';
-			$tempFilePath = Helpers::getTempFilePath($config);
+			$tempFilePath = Helpers::getTempFilePath();
 			if (!$tempFilePath) {
 				throw new  AppVcsException('请配置根目录');
 			}
 			is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
 			
-			$rootPath = Helpers::getRootPath($config);
+			$rootPath = Helpers::getRootPath();
 			if (!$rootPath) {
 				throw new  AppVcsException('请配置根目录');
 			}
@@ -71,27 +77,25 @@ class Kernel {
 				}
 				$zip->close();
 			}
+			$upgradeVersion =  $versionInfo['version'];
 			
-			// 1.备份网站文件+数据库
-			$config['result'] = $result;
-		 
-			$backupStatus = Backup::file($files, $config);
-		
+			
+			// 1.备份文件
+			$backupStatus = Backup::file($files, $result);
 			if (!$backupStatus){
 				throw new  AppVcsException('升级失败:备份文件失败');
 			}
 			
 			// 2.备份数据库
-			$issetTables = isset($versionInfo['backup_tables']);
-			$backup = $issetTables?$versionInfo['backup_tables']:[];
-			if ($backup){
-				$backupStatus = Backup::database($backup, $config, $version);
-				if (!$backupStatus){
-					throw new  AppVcsException('升级失败:备份sql失败');
-				}
+			$issetTables = isset($versionInfo['tables_files']);
+			$backup = $issetTables?$versionInfo['tables_files']:[];
+			$backupStatus = Backup::database($backup, $upgradeVersion);
+			if (!$backupStatus){
+				throw new  AppVcsException('升级失败:备份sql失败');
 			}
 			
-			$projectPath  = Helpers::getProjectPath($config);
+			
+			$projectPath  = Helpers::getProjectPath();
 			if (!$projectPath){
 				$projectPath = $rootPath;
 			}
@@ -120,7 +124,7 @@ class Kernel {
 				
 				
 				// 安全文件只运行不下载
-				$safeFileOrDirs = [Helpers::getDatabaseSqlPath($config)];
+				$safeFileOrDirs = [Helpers::getDatabaseSqlPath($upgradeVersion)];
 				if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']){
 					$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
 				}
@@ -129,11 +133,20 @@ class Kernel {
 				if (!$filterFiles){
 					$filterFiles = [];
 				}
-				if (in_array($path, $filterFiles)){
+				
+				// 存在指定过滤文件， 那么直接过滤
+				if (in_array($path, $filterFiles)   ){
 					continue;
 				}
-				
-				
+			 
+				// 如果包含， 也过滤
+				foreach ($filterFiles as $filterFileItem){
+					$isContains =  strpos($path, $filterFileItem)!==false;
+					if (!$isContains){
+						break;
+					}
+				}
+				 
 				if (!in_array($path, $safeFileOrDirs)){
 					// var_dump($localFilePath, $upgradeFilePath, $path);
 					switch ($type) {
@@ -143,7 +156,7 @@ class Kernel {
 							break;
 						case 'sql': // 数据库迁移
 							
-							Migrate::database($upgradeFilePath);
+							Migrate::database($versionInfo['version']);
 							break;
 						case 'config': // 配置更新,
 						default: // 业务数据更新
@@ -166,21 +179,21 @@ class Kernel {
 			$transction->success($result);
 			return true;
 		} catch (\Error $e){
-			self::throwError($result, $transction, $config, $e);
+			self::throwError($result, $transction, $e);
 		} catch (\Exception $e){
 			
 			
 			// 回滚程序
-			self::throwError($result, $transction, $config, $e);
+			self::throwError($result, $transction, $e);
 		}
 	}
 	
-	public static function throwError($result, $transction, $config, $e)
+	public static function throwError($result, $transction, $e)
 	{
 		$errorData = [
 			'upgrade' => $result,
 		];
-		$transction->rollback($errorData, $config, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
+		$transction->rollback($errorData, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
 		throw new AppVcsException($e->getMessage());
 	}
 	
@@ -188,12 +201,11 @@ class Kernel {
 	
 	/**
 	 * 获取系统版本
-	 * @param $config
 	 * @return false|string
 	 */
-	public static function version($config=[])
+	public static function version()
 	{
-		return Helpers::getVersion($config);
+		return Helpers::getVersion();
 	}
 	
 	

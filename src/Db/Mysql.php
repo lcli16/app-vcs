@@ -8,9 +8,9 @@ use Lcli\AppVcs\AppVcsException;
 
 class Mysql implements DbService {
 	private $conn = null;
-	public function __construct($config=[]) {
+	public function __construct() {
 		// 数据库配置
-		$database = Helpers::getDbConfig($config);
+		$database = Helpers::getDbConfig();
 		if (isset($database['host'])){
 			$host = $database[ 'host' ];
 			$port = $database[ 'port' ];

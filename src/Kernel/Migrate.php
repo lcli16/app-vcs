@@ -9,21 +9,20 @@ class Migrate {
 	 
 	/**
 	 * 数据库迁移
-	 * @param $upgradeFilePath
+	 * @param $version
 	 * @return void
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public static function database($upgradeFilePath)
+	public static function database($upgradeVersion)
 	{
 		$conn = Db::instance();
-		
 		// 读取SQL文件
-		$sqlFile = $upgradeFilePath;
+		$sqlFile = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
 		$sqlScript = file_get_contents($sqlFile);
 		
 		// 分割SQL脚本成单个语句
 		$statements = explode(";\n", $sqlScript);
-		
+	 
 		// 执行每个SQL语句
 		foreach ( $statements as $statement ) {
 			if (trim($statement) != '') { // 忽略空语句
