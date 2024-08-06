@@ -57,7 +57,7 @@ BANNER;
 		$options->registerArgument('appId', 'APP-VCS 管理平台应用 ID', true);
 		$options->registerCommand("rollback", "回滚项目版本");
 		$options->registerCommand("deploy", "部署项目");
-		
+		$options->registerCommand('init', '初始化插件');
 		
 		$options->registerOption('url', '设置服务端APi 地址', 'u', true);
 		$options->registerOption('project_path', '项目目录', 'P', true);
@@ -133,6 +133,14 @@ BANNER;
 			exit();
 		}
 		
+		//初始化
+		if ($cmd == 'init') {
+			$appId = $args[0];
+			$this->setConfig('app_id', $appId);
+			$this->init($appId, $projectVersion);
+			exit();
+		}
+		
 		//部署客户端
 		if ($cmd == 'deploy') {
 			if (!$projectVersion) {
@@ -161,7 +169,11 @@ BANNER;
 		$this->config[$name] = $value;
 		Helpers::$config     = $this->config;
 	}
-	
+	public function init()
+	{
+		Helpers::generatedConfig($this->config);
+		$this->success("初始化项目完成！ 请前往 config/appvcs.php 配置插件！");
+	}
 	
 	public function deploy($appId, $version)
 	{

@@ -195,10 +195,10 @@ class Helpers {
 		return self::config('app_id');
 	}
 	
-	public static function generatedConfig(Event $event)
+	public static function generatedConfig(array $config)
 	{
 		// 生成配置文件
-		$configDir = __DIR__ . '/../../../../config';
+		$configDir = dirname(__DIR__,4) . '/config';
 		is_dir($configDir) or mkdir($configDir, 0775, true);
 		$source = __DIR__ . '/Config/config.php';
 		copy($source, $configDir . '/appvcs.php');
