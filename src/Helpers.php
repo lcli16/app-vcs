@@ -14,7 +14,7 @@ class Helpers {
 			$userConfig = dirname(__DIR__, 4) . '/config/appvcs.php';
 			
 			if (!file_exists($userConfig)) {
-				throw new AppVcsException('没有配置文件');
+				Helpers::generatedConfig([]);
 			}
 			$configs = include $userConfig;
 		}
@@ -195,7 +195,7 @@ class Helpers {
 		return self::config('app_id');
 	}
 	
-	public static function generatedConfig(array $config)
+	public static function generatedConfig(array $config=[])
 	{
 		// 生成配置文件
 		$configDir = dirname(__DIR__,4) . '/config';
