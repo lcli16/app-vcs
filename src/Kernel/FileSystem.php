@@ -41,4 +41,29 @@ class FileSystem {
 			rmdir($dir); // 删除目录
 		}
 	}
+	
+	static function getAllFiles($path)
+	{
+		$files = [];
+		// 检查路径是否存在并且是目录
+		if (is_dir($path)) {
+			$dir = opendir($path);
+			while (false !== ($file = readdir($dir))) {
+				if ($file != '.' && $file != '..') {
+					$fullPath = $path . DIRECTORY_SEPARATOR . $file;
+					// 如果是目录，则递归调用自身
+					if (is_dir($fullPath)) {
+						$files = array_merge($files, $this->getAllFiles($fullPath));
+					} else {
+						// 如果是文件，则添加到文件列表中
+						$files[] = $fullPath;
+					}
+				}
+			}
+			closedir($dir);
+		}
+		
+		return $files;
+	}
+	
 }

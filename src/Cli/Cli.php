@@ -4,6 +4,7 @@ namespace Lcli\AppVcs\Cli;
 
 use Lcli\AppVcs\Helpers;
 use Lcli\AppVcs\Kernel\Backup;
+use Lcli\AppVcs\Kernel\FileSystem;
 use Lcli\AppVcs\Kernel\Kernel;
 use Lcli\AppVcs\Kernel\Request;
 use Lcli\AppVcs\Kernel\Transaction;
@@ -14,34 +15,11 @@ class Cli {
 	
 	private $rootPath    = '';
 	private $projectPath = '';
-	private $config      = [
-		// 服务地址
-		'server_url'     => 'https://www.baidu.com',
-		// 客户端ID
-		'client_id'      => 'client-test-1',
-		// 应用ID
-		'app_id'         => 'test',
-		// 执行时生成的临时文件进行存储的目录
-		'temp_file_path' => '',
-		// 备份目录
-		'backup_path'    => '',
-		// 安装sdk的服务端目录
-		'root_path'      => __DIR__ . '../../../../../',
-		// 项目目录 需要更新的代码目录
-		'project_path'   => __DIR__ . '../../../../../',
-		// 数据库配置
-		'database'       => [
-			'driver'   => 'mysql',
-			'host'     => '127.0.0.1',
-			'port'     => 3306,
-			'database' => 'lhr_app',
-			'username' => 'root',
-			'password' => '',
-		],
-	];
+	private $config      =  [];
 	
 	public static function instance()
 	{
+		
 		error_reporting(E_ALL & ~E_WARNING);
 		$strict    = in_array('--strict', $_SERVER['argv']);
 		$arguments = new \cli\Arguments(compact('strict'));
@@ -50,7 +28,7 @@ class Cli {
 			                    'help',
 			                    'h'
 		                    ], '查看帮助');
- 
+		
 		$arguments->addOption([
 			                      'register',
 			                      'r'
@@ -69,7 +47,14 @@ class Cli {
 			                      'url',
 			                      'u'
 		                      ], [
-			                      'description' => 'Set the cache directory',
+			                      'description' => '设置服务端APi 地址',
+			                      'default'     => ''
+		                      ]);
+		$arguments->addOption([
+			                      'client_id',
+			                      'c'
+		                      ], [
+			                      'description' => '客户端ID',
 			                      'default'     => ''
 		                      ]);
 		$arguments->addOption([
@@ -114,9 +99,10 @@ class Cli {
 	
 	public function boot()
 	{
+		$this->config = Helpers::config();
 		
 		$arguments = self::instance();
-		
+		$this->config['client_id'] = Helpers::getServerIp();
 		$args            = $arguments->getArguments();
 		$this->arguments = $arguments;
 		
@@ -132,6 +118,13 @@ class Cli {
 		if ($invalidArguments) {
 			\cli\err('  %1 无效参数:{:a}  %n', ['a' => $invalidArguments[0]]);
 		}
+		
+		// 客户端 ID
+		$clientId = isset($arguments['client_id']) ? $arguments['client_id'] : false;
+		if ($clientId) {
+			$this->config['client_id'] = $clientId;
+		}
+		
 		// 服务端目录
 		$rootPath = isset($arguments['path']) ? $arguments['path'] : false;
 		if ($rootPath) {
@@ -199,12 +192,12 @@ class Cli {
 		if ($this->rootPath) {
 			$rootPath = $this->rootPath;
 		} else {
-			$rootPath = __DIR__ . '/../../../../../';
+			$rootPath = dirname(__DIR__, 5) ;
 		}
 		
 		$this->config['root_path'] = $rootPath;
 		$this->config['app_id'] = $appId;
-		Kernel::upgrade($appId, $version, $this->config);
+		Kernel::upgrade($appId, $version);
 		\Cli\line("部署成功! 版本:v{$version} ");
 	}
 	
@@ -217,7 +210,7 @@ class Cli {
 		}
 		
 		
-		$workPath          = Helpers::getWorkPath($this->config);
+		$workPath          = Helpers::getWorkPath();
 		$workDir           = $rootPath . $workPath;
 		$backupVersionName = str_replace('.', "_", $version);
 		$backupPath        = $workDir . "/backup/v{$backupVersionName}";
@@ -230,7 +223,7 @@ class Cli {
 		$this->config['root_path'] = $rootPath;
 		$this->config['app_id'] = $appId;
 		
-		$files    = $this->getAllFiles($backupPath);
+		$files    = FileSystem::getAllFiles($backupPath);
 		$fileList = [];
 		foreach ($files as $file) {
 			
@@ -241,34 +234,10 @@ class Cli {
 			];
 		}
 		
-		Backup::$backupFile = $fileList;
-		Backup::rollback($data, $this->config);
+		Backup::rollback($data);
 		\Cli\line("%2 执行回滚完成! 回滚版本:v{$version} %n");
 	}
 	
-	function getAllFiles($path)
-	{
-		$files = [];
-		// 检查路径是否存在并且是目录
-		if (is_dir($path)) {
-			$dir = opendir($path);
-			while (false !== ($file = readdir($dir))) {
-				if ($file != '.' && $file != '..') {
-					$fullPath = $path . DIRECTORY_SEPARATOR . $file;
-					// 如果是目录，则递归调用自身
-					if (is_dir($fullPath)) {
-						$files = array_merge($files, $this->getAllFiles($fullPath));
-					} else {
-						// 如果是文件，则添加到文件列表中
-						$files[] = $fullPath;
-					}
-				}
-			}
-			closedir($dir);
-		}
-		
-		return $files;
-	}
 	
 	
 	public function register($appId, $url)
@@ -286,15 +255,9 @@ class Cli {
 			$projectPath = $this->config['project_path'];
 		}
 		
-		$hostname = gethostname();
-		$serverIp = gethostbyname($hostname);
-		$config   = [
-			'client_id'    => $serverIp,
-			'app_id'       => $appId,
-			'server_url'   => $url,
-			'root_path'    => $rootPath,
-			'project_path' => $projectPath
-		];
+	 
+		$serverIp =  Helpers::getServerIp();
+		$config   =  $this->config;
 		is_dir($config['root_path'] . "/" . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
 		$data = [
 			'client_id' => $serverIp,
@@ -304,7 +267,7 @@ class Cli {
 		];
 		 
 		// 注册客户端
-		$result  = \Lcli\AppVcs\Kernel\Request::instance($config)->register($data, $config);
+		$result  = \Lcli\AppVcs\Kernel\Request::instance()->register($data);
 		$command = $result['command'];
 		if ($command) {
 			$date = date('Y-m-d H:i:s');
@@ -337,6 +300,9 @@ class Cli {
 			}
 		}
 	}
+	
+	
+	
 	
 	
 	public function help()

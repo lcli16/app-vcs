@@ -2,19 +2,24 @@
 namespace Lcli\AppVcs;
 
 
+use Lcli\AppVcs\Helpers;
 use Lcli\AppVcs\http\Request;
 use Lcli\AppVcs\Kernel\Kernel;
-use Lcli\AppVcs\Helpers;
 
 class AppVcs {
+	private $config = [];
+	public function __construct($options=[]) {
+		$this->config = $options;
+	}
+	
 	/**
 	 * 检查更新
 	 * @param $version
 	 * @return array|mixed
 	 */
-	public static function check($version=null)
+	public   function check($version=null)
 	{
-		$appId = Helpers::config('app_id');
+		$appId = Helpers::getAppId();
 		return Kernel::check($appId, $version);
 	}
 	
@@ -23,9 +28,14 @@ class AppVcs {
 	 * @param $version
 	 * @return array|mixed
 	 */
-	public static function upgrade($version=null)
+	public   function upgrade($version=null)
 	{
-		$appId = Helpers::config('app_id');
+		$appId = Helpers::getAppId();
 		return Kernel::upgrade($appId, $version);
+	}
+	
+	public function getVersion()
+	{
+		return Kernel::version();
 	}
 }

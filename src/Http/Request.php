@@ -18,38 +18,27 @@ class Request {
 		if (!$clientId) {
 			throw new AppVcsException('客户id不能为空');
 		}
-		$url = isset($options['url']) ?$options['url']: '';
+		$url = isset($options['url']) ? $options['url'] : '';
 		if (!$url) {
 			throw new AppVcsException("服务地址为空");
 		}
-		$this->url      = $url;
+		$trimmedUrl     = rtrim($url, '/');
+		$this->url      = $trimmedUrl;
 		$this->clientId = $clientId;
 		$this->http     = new Http();
 	}
 	
-	public function config($options)
-	{
-		
-		$this->url      = Helpers::getServerUrl($options);
-		$this->clientId = Helpers::getClientId($options);
-		if (!$this->url) {
-			throw new AppVcsException('服务地址为空');
-		}
-		if (!$this->clientId) {
-			throw new AppVcsException('客户id不能为空');
-		}
-	}
+	
 	/**
 	 * 注册客户端
 	 * @param $data
-	 * @param $config
 	 * @return array|mixed
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public function register($data, $config = [])
+	public function register($data)
 	{
 		$clientId = $data['client_id'];
-		$url = $this->url . "api/appvcs/client/register/{$clientId}";
+		$url      = $this->url . "/api/appvcs/client/register/{$clientId}";
 		
 		return $this->post($url, $data);
 	}
@@ -57,27 +46,25 @@ class Request {
 	/**
 	 * 执行回调
 	 * @param $data
-	 * @param $config
 	 * @return array|mixed
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public function callback($data, $config = [])
+	public function callback($data)
 	{
-		$this->config($config);
-		$url = $this->url . "api/appvcs/callback/{$this->clientId}";
+		$url = $this->url . "/api/appvcs/callback/{$this->clientId}";
 		return $this->post($url, $data);
 	}
+	
 	/**
 	 * 检查更新
 	 * @param $data
-	 * @param $config
 	 * @return array|mixed
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public function check($data, $config = [])
+	public function check($data)
 	{
-		$this->config($config);
-		$url = $this->url . "api/appvcs/system/check/{$this->clientId}";
+		$url = $this->url . "/api/appvcs/system/check/{$this->clientId}";
+		
 		return $this->post($url, $data);
 	}
 	
@@ -87,10 +74,9 @@ class Request {
 	 * @return array|mixed
 	 * @throws \Lcli\AppVcs\AppVcsException
 	 */
-	public function upgrade($data, $config = [])
+	public function upgrade($data)
 	{
-		$this->config($config );
-		$url = $this->url . "api/appvcs/system/upgrade/{$this->clientId}";
+		$url = $this->url . "/api/appvcs/system/upgrade/{$this->clientId}";
 		return $this->post($url, $data);
 	}
 	
@@ -115,16 +101,17 @@ class Request {
 	 */
 	private function output($response)
 	{
+		
 		$resp = json_decode($response, true);
 		if (!$resp) {
-			throw new AppVcsException("数据解析失败");
+			throw new AppVcsException("数据解析失败:".$response);
 		}
 		
-		$code = isset($resp['code']) ?$resp['code']: -1;
+		$code = isset($resp['code']) ? $resp['code'] : -1;
 		if ($code < 0) {
-			throw new AppVcsException(isset($resp['msg']) ?$resp['msg']: '未知错误');
+			throw new AppVcsException(isset($resp['msg']) ? $resp['msg'] : '未知错误');
 		}
-		return isset($resp['data']) ?$resp['data']: [];
+		return isset($resp['data']) ? $resp['data'] : [];
 	}
 	
 }
