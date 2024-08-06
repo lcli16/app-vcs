@@ -132,6 +132,72 @@ php vendor/bin/appvcs register {appId}
 [2024-08-06 18:25:09] 运行守护进程
 [2024-08-06 18:25:09] 注册成功!
 ```
+## 命令行助手
+```bash
+php vendor/bin/appvcs help
+```
+```html
+app-vcs@ubuntu-linux-22-04-02-desktop:/www/wwwroot/tzkj/gentou$ php vendor/bin/appvcs help
+
+USAGE:
+   appvcs <OPTIONS> <COMMAND> ... <appId>
+
+                                                                                                                                        
+       ___    ____  ____      _    _____________                                                                                        
+      /   |  / __ \/ __ \    | |  / / ____/ ___/                                                                                        
+     / /| | / /_/ / /_/ /____| | / / /    \__ \                                                                                         
+    / ___ |/ ____/ ____/_____/ |/ / /___ ___/ /                                                                                         
+   /_/  |_/_/   /_/          |___/\____//____/                                                                                          
+                                                                                                                                        
+   -by 1cli                                                                                                                             
+                                                                                                                                        
+
+OPTIONS:
+   -v, --version                           版本信息                                                                                         
+
+   -u <1>, --url <1>                       设置服务端APi 地址                                                                                  
+
+   -P <1>, --project_path <1>              项目目录                                                                                         
+
+   -c <1>, --client_id <1>                 客户端 ID                                                                                       
+
+   -V <1>, --project_version <1>           指定版本号                                                                                        
+
+   -p <1>, --path <1>                      安装库根目录                                                                                       
+
+   -d <1>, --database <1>                  数据库配置，格式：mysql://username:password@host:port/dbname                                          
+                                           例如：mysql://root:root@127.0.0.1:port/app-vcs                                                  
+
+   -h, --help                              Display this help screen and exit immediately.                                               
+
+   --no-colors                             Do not use any colors in output. Useful when piping output to other tools or files.          
+
+   --loglevel <level>                      Minimum level of messages to display. Default is info. Valid levels are: debug, info, notice,
+                                           success, warning, error, critical, alert, emergency.                                         
+
+
+ARGUMENTS:
+   <appId>                                 APP-VCS 管理平台应用 ID                                                                            
+
+COMMANDS:
+   This tool accepts a command as first parameter as outlined below:                                                                    
+
+
+   register
+
+     注册客户端                                                                                                                              
+                                                                                                                                        
+
+   rollback
+
+     回滚项目版本                                                                                                                             
+                                                                                                                                        
+
+   deploy
+
+     部署项目                                                                                                                               
+                     
+```
 ##  🔥 功能一览
 
  

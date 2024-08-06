@@ -112,7 +112,7 @@ BANNER;
 		//注册客户端
 		if ($cmd == 'register') {
 			if (!$url) {
-				$this->error('请输入服务器地址, 例如: php appvcs  -r test -u http://www.baidu.com');
+				$this->error('请输入服务器地址： -u https://xxx.com/ ');
 				exit();
 			}
 			$appId = $args[0];
@@ -136,7 +136,7 @@ BANNER;
 		//部署客户端
 		if ($cmd == 'deploy') {
 			if (!$projectVersion) {
-				$this->error('请输入部署应用 ID/版本号, 例如: php appvcs  deploy {appId} --dv 1.1.1  ');
+				$this->error('请输入部署应用版本号, 例如: php  appvcs  -V 1.1.21 -P /www/wwwroot/tzkj/gentou -u http://dev.app-vcs.com deploy gentou   ');
 				exit();
 			}
 			$appId = $args[0];
