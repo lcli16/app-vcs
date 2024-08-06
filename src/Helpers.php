@@ -5,16 +5,20 @@ namespace Lcli\AppVcs;
 class Helpers {
 	public static $workPath = 'public/vendor/AppVcs';
 	
-	
+	public static $config = [];
 	public static function config($name = null)
 	{
-		
-		$userConfig = dirname(__DIR__, 4) . '/config/appvcs.php';
-		
-		if (!file_exists($userConfig)) {
-			throw new AppVcsException('没有配置文件');
+		if (static::$config){
+			$configs = static::$config;
+		}else{
+			$userConfig = dirname(__DIR__, 4) . '/config/appvcs.php';
+			
+			if (!file_exists($userConfig)) {
+				throw new AppVcsException('没有配置文件');
+			}
+			$configs = include $userConfig;
 		}
-		$configs = include $userConfig;
+		
 		if ($name) {
 			if (is_array($configs)) {
 				$config = isset($configs[$name])?$configs[$name]:'';

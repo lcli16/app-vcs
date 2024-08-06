@@ -3,6 +3,7 @@
 namespace Lcli\AppVcs\Kernel;
 
 use Lcli\AppVcs\Helpers;
+use splitbrain\phpcli\CLI;
 
 class Backup {
 	
@@ -167,18 +168,17 @@ class Backup {
 				$delimiter     = ';';          // SQL语句结束符
 				$pattern       = "/;(\r?\n)/"; // 正则表达式匹配语句结束符后跟换行符
 				$sqlStatements = preg_split($pattern, $sqlScript);
-				
+				$cli = new \Lcli\AppVcs\Cli\Cli();
 				// 执行每个SQL语句
 				foreach ($sqlStatements as $stmt) {
 					$stmt = trim($stmt); // 去除首尾空白字符
 					if (!empty($stmt)) { // 检查SQL语句是否为空
 						if ($database->query($stmt) === FALSE) {
-							echo 'Error executing query: ' . $database->error();
+							$cli->error('Error executing query: ' . $database->error() . ', sql:' . $stmt”);
 							break; // 如果有错误，停止执行
 						}
 					}
 				}
-				
 			}
 		}
 		// 创建了什么表， 创建了就删除

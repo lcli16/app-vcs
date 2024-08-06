@@ -54,6 +54,9 @@ class Db {
 	 */
 	static function getCreateTableRecords($sqlFilePath)
 	{
+		if (!file_exists($sqlFilePath)){
+			return [];
+		}
 		// 读取 SQL 文件内容
 		$sqlContent = file_get_contents($sqlFilePath);
 		
