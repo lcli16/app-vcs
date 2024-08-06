@@ -37,13 +37,17 @@
 ## 快速入门
 
 ### 1. 安装下载版本管理PHP依赖包:
-在 wwwroot 下创建 一个目录，用于下载扩展包， 运行命令：
+🔆 1.1 在 wwwroot 下创建 一个目录，用于下载扩展包， 运行命令：
 ```bash
 composer require lcli/app-vcs
 ```
-⚠️要注意的是, 找不到版本包,请切换成官方镜像源即可, 命令如下:
+⚠️ 要注意的是, 找不到版本包,请切换成官方镜像源即可, 命令如下:
 ```bash
 composer config -g repo.packagist composer https://repo.packagist.org
+```
+🔆 1.2 安装完成后，运行初始化命令，系统会自动生成配置文件：
+```bash
+php vendor/bin/appvcs init
 ```
 ### 2. 进入配置文件config/appvcs.php:
 配置相关信息后保存
@@ -109,12 +113,13 @@ return [
 ];
 ```
 ### 3. 注册客户端:
-配置完成后运行命令：
+
+🔆3.1 配置完成后运行命令：
 ```bash
-php vendor/bin/appvcs register {appId}
+php vendor/bin/appvcs -u http://dev.app-vcs.com/ -p /www/wwwroot/tzkj/gentou -d mysql://username:password@127.0.0.1:3306/dbname register gentou
 ```
-⚠️ {appId}: 从版本管理系统中创建获取
-运行显示：注册完成即可和后台通讯
+⚠️ appId: 从版本管理系统中创建获取
+运行显示：注册完成即可和平台通讯
 
 ```bash
 [2024-08-06 18:25:08] 正在注册客户端...
