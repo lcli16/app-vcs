@@ -2,211 +2,214 @@
 
 namespace Lcli\AppVcs\Cli;
 
+use Lcli\AppVcs\AppVcsException;
 use Lcli\AppVcs\Helpers;
 use Lcli\AppVcs\Kernel\Backup;
 use Lcli\AppVcs\Kernel\FileSystem;
 use Lcli\AppVcs\Kernel\Kernel;
 use Lcli\AppVcs\Kernel\Request;
 use Lcli\AppVcs\Kernel\Transaction;
+use splitbrain\phpcli\Options;
 
-class Cli {
-	
-	private $arguments;
-	
-	private $rootPath    = '';
-	private $projectPath = '';
-	private $config      =  [];
-	
-	public static function instance()
+class Cli extends \splitbrain\phpcli\CLI {
+	public function output($msg, $type = 'info')
 	{
+		if (php_sapi_name() === 'cli') {
+			switch ($type) {
+				case 'error':
+					$this->error($msg);
+					break;
+				case 'success':
+					$this->success($msg);
+					break;
+				case 'warning':
+					$this->warning($msg);
+					break;
+				default:
+					$this->info($msg);
+					break;
+			}
+		} else {
+			throw new AppVcsException($msg);
+		}
 		
-		error_reporting(E_ALL & ~E_WARNING);
-		$strict    = in_array('--strict', $_SERVER['argv']);
-		$arguments = new \cli\Arguments(compact('strict'));
-		
-		$arguments->addFlag([
-			                    'help',
-			                    'h'
-		                    ], '查看帮助');
-		
-		$arguments->addOption([
-			                      'register',
-			                      'r'
-		                      ], [
-			                      'description' => '注册客户端服务',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'rollback',
-			                      'rb'
-		                      ], [
-			                      'description' => '回滚项目',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'url',
-			                      'u'
-		                      ], [
-			                      'description' => '设置服务端APi 地址',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'client_id',
-			                      'c'
-		                      ], [
-			                      'description' => '客户端ID',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'rollback_version',
-			                      'rbv'
-		                      ], [
-			                      'description' => '回滚版本号',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'path',
-			                      'p'
-		                      ], [
-			                      'description' => '服务端目录',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'project_path',
-			                      'pp'
-		                      ], [
-			                      'description' => '项目目录',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'deploy',
-			                      'd'
-		                      ], [
-			                      'description' => '部署项目',
-			                      'default'     => ''
-		                      ]);
-		$arguments->addOption([
-			                      'deploy_version',
-			                      'dv'
-		                      ], [
-			                      'description' => '部署项目版本',
-			                      'default'     => ''
-		                      ]);
-		$arguments->parse();
-		
-		return $arguments;
 	}
 	
-	public function boot()
+	private $config = [];
+	
+	// register options and arguments
+	protected function setup(Options $options)
 	{
+		$banner = <<<BANNER
+
+    ___    ____  ____      _    _____________
+   /   |  / __ \/ __ \    | |  / / ____/ ___/
+  / /| | / /_/ / /_/ /____| | / / /    \__ \
+ / ___ |/ ____/ ____/_____/ |/ / /___ ___/ /
+/_/  |_/_/   /_/          |___/\____//____/
+
+-by 1cli
+BANNER;
+		
+		$options->setHelp($banner);
+		$options->registerOption('version', '版本信息', 'v');
+		// $options->registerOption('register', '注册客户端', 'r');
+		$options->registerCommand("register", "注册客户端");
+		$options->registerArgument('appId', 'APP-VCS 管理平台应用 ID', true);
+		$options->registerCommand("rollback", "回滚项目版本");
+		$options->registerCommand("deploy", "部署项目");
+		$options->registerCommand('init', '初始化插件');
+		
+		$options->registerOption('url', '设置服务端APi 地址', 'u', true);
+		$options->registerOption('project_path', '项目目录', 'P', true);
+		$options->registerOption('client_id', '客户端 ID', 'c', true);
+		$options->registerOption('project_version', '指定版本号', 'V', true);
+		$options->registerOption('path', '安装库根目录', 'p', true);
+		$options->registerOption('database', "数据库配置，格式：mysql://username:password@host:port/dbname\n例如：mysql://root:root@127.0.0.1:port/app-vcs", 'd', true);
+	}
+	
+	// implement your code
+	protected function main(Options $options)
+	{
+		
 		$this->config = Helpers::config();
+		$this->setConfig('client_id', Helpers::getServerIp());
 		
-		$arguments = self::instance();
-		$this->config['client_id'] = Helpers::getServerIp();
-		$args            = $arguments->getArguments();
-		$this->arguments = $arguments;
-		
-		$isNull = true;
-		foreach ($args as $arg => $isOpen) {
-			if ($isOpen) {
-				$isNull = false;
-			}
-		}
-		
-		$invalidArguments = $arguments->getInvalidArguments();
-		
-		if ($invalidArguments) {
-			\cli\err('  %1 无效参数:{:a}  %n', ['a' => $invalidArguments[0]]);
-		}
-		
+		$cmd  = $options->getCmd();
+		$args = $options->getArgs();
 		// 客户端 ID
-		$clientId = isset($arguments['client_id']) ? $arguments['client_id'] : false;
-		if ($clientId) {
-			$this->config['client_id'] = $clientId;
+		if ($clientId = $options->getOpt("client_id")) {
+			$this->setConfig('client_id', $clientId);
 		}
-		
 		// 服务端目录
-		$rootPath = isset($arguments['path']) ? $arguments['path'] : false;
-		if ($rootPath) {
-			$this->rootPath = $rootPath;
-			$this->config['root_path'] = $rootPath;
+		if ($path = $options->getOpt('path')) {
+			$this->setConfig('root_path', $path);
 		}
-		
 		// 项目目录
-		$projectPath = isset($arguments['project_path']) ? $arguments['project_path'] : false;
-		if ($projectPath) {
-			$this->projectPath = $projectPath;
-			$this->config['project_path'] = $projectPath;
+		if ($projectPath = $options->getOpt('project_path')) {
+			$this->setConfig('project_path', $projectPath);
+			$checkDir = Helpers::checkPath($projectPath);
+			if (!$checkDir) {
+				return false;
+			}
+			Helpers::$config = include $projectPath . '/config/appvcs.php';
 		}
 		
-		$url = isset($arguments['url']) ? $arguments['url'] : false;
-		if ($url) {
-			$this->config['server_url'] = $url;
+		// 服务端 API
+		if ($url = $options->getOpt('url')) {
+			$this->setConfig('server_url', $url);
+		}
+		// 数据库配置
+		if ($database = $options->getOpt('database')) {
+			$parseDb  = parse_url($database);
+			$dbConfig = [
+				'driver'   => $parseDb['scheme'],
+				'host'     => $parseDb['host'],
+				'port'     => $parseDb['port'],
+				'database' => str_replace('/', '', $parseDb['path']),
+				'username' => $parseDb['user'],
+				'password' => $parseDb['pass'],
+			];
+			$this->setConfig('database', $dbConfig);
 		}
 		
-		$register = isset($arguments['register']) ? $arguments['register'] : false;
-		if ($register !== false) {
-			
+		// 设置版本号
+		$projectVersion = $options->getOpt('project_version');
+		//注册客户端
+		if ($cmd == 'register') {
 			if (!$url) {
-				\cli\err('  %1 请输入服务器地址, 例如: php appvcs  -r test -u http://www.baidu.com %n');
+				$this->error('请输入服务器地址： -u https://xxx.com/ ');
 				exit();
 			}
-			$this->config['server_url'] = $url;
-			$this->register($register, $url);
-			exit();
-		}
-		// 版本回滚
-		$rollback = isset($arguments['rollback']) ? $arguments['rollback'] : false;
-		if ($rollback !== false) {
-			$rollbackVersion = isset($arguments['rollback_version']) ? $arguments['rollback_version'] : false;
-			if (!$rollbackVersion) {
-				\cli\err('  %1 请输入回滚版本号, 例如: php appvcs  rollback web-test --rbv 1.0.0  %n');
-				exit();
-			}
-			
-			$this->rollback($rollback, $rollbackVersion);
+			$appId = $args[0];
+			$this->setConfig('app_id', $appId);
+			$this->register($appId, $url);
 			exit();
 		}
 		
-		// 部署
-		$deploy = isset($arguments['deploy']) ? $arguments['deploy'] : false;
-		if ($deploy !== false) {
-			$deployVersion = isset($arguments['deploy_version']) ? $arguments['deploy_version'] : false;
-			if (!$deployVersion) {
-				\cli\err('  %1 请输入部署应用 ID/版本号, 例如: php appvcs  deploy {appId} --dv 1.1.1  %n');
+		//注册客户端
+		if ($cmd == 'rollback') {
+			if (!$projectVersion) {
+				$this->error('请输入回滚版本号, 例如: php  appvcs -V 1.0.0 -P /www/wwwroot/tzkj/gentou rollback gentou  ');
 				exit();
 			}
-			$this->config['app_id'] = $deploy;
-			$this->deploy($deploy, $deployVersion);
+			$appId = $args[0];
+			$this->setConfig('app_id', $appId);
+			$this->rollback($appId, $projectVersion);
 			exit();
 		}
 		
-		if ($arguments['help'] || $isNull) {
-			$this->help();
+		//初始化
+		if ($cmd == 'init') {
+			$appId = $args[0];
+			$this->setConfig('app_id', $appId);
+			$this->init($appId, $projectVersion);
+			exit();
+		}
+		
+		//部署客户端
+		if ($cmd == 'deploy') {
+			if (!$projectVersion) {
+				$this->error('请输入部署应用版本号, 例如: php  appvcs  -V 1.1.21 -P /www/wwwroot/tzkj/gentou -u http://dev.app-vcs.com deploy gentou   ');
+				exit();
+			}
+			$appId = $args[0];
+			$this->setConfig('app_id', $appId);
+			$this->deploy($appId, $projectVersion);
+			exit();
+		}
+		if (!$cmd) {
+			exit($options->help());
 		}
 		exit(" \n\n");
 	}
 	
+	
+	public static function instance()
+	{
+		error_reporting(E_ALL & ~E_WARNING);
+	}
+	
+	public function setConfig($name, $value)
+	{
+		$this->config[$name] = $value;
+		
+		$config = $this->config;
+		foreach ($config as $key => $val) {
+			$systemConfig = Helpers::$config;
+			if (isset($systemConfig[$key]) && (!$val && $systemConfig[$key])) {
+				$config[$key] = $systemConfig[$key];
+			} else {
+				$config[$key] = $val;
+			}
+		}
+		Helpers::$config = $config;
+	}
+	
+	public function init()
+	{
+		Helpers::generatedConfig($this->config);
+		$this->success("初始化项目完成！ 请前往 config/appvcs.php 配置插件！");
+	}
+	
 	public function deploy($appId, $version)
 	{
-		if ($this->rootPath) {
-			$rootPath = $this->rootPath;
-		} else {
-			$rootPath = dirname(__DIR__, 5) ;
+		$rootPath = $this->config['root_path'];
+		if (!$rootPath) {
+			$rootPath = dirname(__DIR__, 5);
 		}
 		
 		$this->config['root_path'] = $rootPath;
-		$this->config['app_id'] = $appId;
+		$this->config['app_id']    = $appId;
 		Kernel::upgrade($appId, $version);
-		\Cli\line("部署成功! 版本:v{$version} ");
+		$this->success("部署成功! 版本:v{$version} ");
 	}
 	
 	public function rollback($appId, $version)
 	{
-		if ($this->rootPath) {
-			$rootPath = $this->rootPath;
-		} else {
-			$rootPath = __DIR__ . '/../../../../../';
+		$rootPath = $this->config['root_path'];
+		if (!$rootPath) {
+			$rootPath = dirname(__DIR__, 5);
 		}
 		
 		
@@ -221,7 +224,7 @@ class Cli {
 		];
 		
 		$this->config['root_path'] = $rootPath;
-		$this->config['app_id'] = $appId;
+		$this->config['app_id']    = $appId;
 		
 		$files    = FileSystem::getAllFiles($backupPath);
 		$fileList = [];
@@ -235,29 +238,20 @@ class Cli {
 		}
 		
 		Backup::rollback($data);
-		\Cli\line("%2 执行回滚完成! 回滚版本:v{$version} %n");
+		$this->success("执行回滚完成! 回滚版本:v{$version}");
 	}
-	
 	
 	
 	public function register($appId, $url)
 	{
 		$date = date('Y-m-d H:i:s');
-		\cli\out("[$date] 正在注册客户端...\n");
+		$this->info("[$date] 正在注册客户端...\n");
 		
-		if ($this->rootPath) {
-			$rootPath = $this->rootPath;
-		} else {
-			$rootPath = __DIR__ . '/../../../../../';
+		$serverIp = Helpers::getServerIp();
+		if (!$this->config['root_path']) {
+			$this->setConfig('root_path', Helpers::getRootPath());
 		}
-		$projectPath = $rootPath;
-		if ($this->config['project_path']) {
-			$projectPath = $this->config['project_path'];
-		}
-		
-	 
-		$serverIp =  Helpers::getServerIp();
-		$config   =  $this->config;
+		$config = $this->config;
 		is_dir($config['root_path'] . "/" . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
 		$data = [
 			'client_id' => $serverIp,
@@ -265,13 +259,13 @@ class Cli {
 			'title'     => $serverIp,
 			'config'    => $config
 		];
-		 
+		
 		// 注册客户端
 		$result  = \Lcli\AppVcs\Kernel\Request::instance()->register($data);
 		$command = $result['command'];
 		if ($command) {
 			$date = date('Y-m-d H:i:s');
-			\cli\out("[$date] 客户端注册成功, 正在配置客户端...\n");
+			$this->success("[$date] 客户端注册成功, 正在配置客户端...\n");
 			$this->killScript($appId);
 			
 			foreach ($command as $console) {
@@ -302,11 +296,4 @@ class Cli {
 	}
 	
 	
-	
-	
-	
-	public function help()
-	{
-		exit($this->arguments->getHelpScreen());
-	}
 }

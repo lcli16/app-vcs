@@ -3,6 +3,8 @@
 namespace Lcli\AppVcs\Kernel;
 
 use Lcli\AppVcs\AppVcsException;
+use Lcli\AppVcs\Cli\Cli;
+use Lcli\AppVcs\Helpers;
 
 class FileSystem {
 	
@@ -29,8 +31,20 @@ class FileSystem {
 			throw new AppVcsException("$dir must be a directory");
 		}
 		$files = array_diff(scandir($dir), array('.', '..'));
+		
+		if (file_exists($dir.'/appvcs.php')) {
+			return;
+		}
+		if (!$isChildrenDir){
+			$checkDir = Helpers::checkPath($dir);
+			if (!$checkDir){
+				return false;
+			}
+		}
+		
 		foreach ($files as $file) {
 			$path = $dir . '/' . $file;
+			
 			if (is_dir($path)) {
 				self::clearDir($path, true); // 递归删除子目录中的文件
 			} else {
@@ -53,7 +67,7 @@ class FileSystem {
 					$fullPath = $path . DIRECTORY_SEPARATOR . $file;
 					// 如果是目录，则递归调用自身
 					if (is_dir($fullPath)) {
-						$files = array_merge($files, $this->getAllFiles($fullPath));
+						$files = array_merge($files, static::getAllFiles($fullPath));
 					} else {
 						// 如果是文件，则添加到文件列表中
 						$files[] = $fullPath;

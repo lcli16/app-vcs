@@ -39,7 +39,6 @@ class Request {
 	{
 		$clientId = $data['client_id'];
 		$url      = $this->url . "/api/appvcs/client/register/{$clientId}";
-		
 		return $this->post($url, $data);
 	}
 	
