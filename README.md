@@ -116,10 +116,10 @@ return [
 
 🔆3.1 配置完成后运行命令：
 ```bash
-php vendor/bin/appvcs -u http://dev.app-vcs.com/ -p /www/wwwroot/tzkj/gentou -d mysql://username:password@127.0.0.1:3306/dbname register gentou
+php vendor/bin/appvcs register {appId}
 ```
-⚠️ appId: 从版本管理系统中创建获取
-运行显示：注册完成即可和平台通讯
+⚠️ {appId}: 从版本管理系统中创建获取
+运行显示：注册完成即可和后台通讯
 
 ```bash
 [2024-08-06 18:25:08] 正在注册客户端...
@@ -218,7 +218,7 @@ COMMANDS:
 
 `APP-VCS` 是一个应用版本升级依赖包, 必须依赖版本升级系统使用
 
-系统完全开源，基于 **Apache 2.0** 开源协议，**免费且不限制商业使用**。
+系统完全开源，基于 **Apache 2.0** 开源协议， 。
 
 
 

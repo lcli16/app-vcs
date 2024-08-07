@@ -62,8 +62,10 @@ class Backup {
 			// 设置操作表
 			Helpers::setUpgradeData( ['versionInfo'=> ['tables_files' => $tables]]);
 		}
-	 
-		
+	    if (!$tables){
+			return true;
+	    }
+		 
 		$database    = Helpers::getDbConfig();
 		$host        = $database['host'];
 		$port        = $database['port'];
@@ -150,7 +152,7 @@ class Backup {
 		$upgradeVersion = $upgradeData['version'];
 		$rollbackDbPath = Helpers::getRollbackSqlPath($upgradeVersion);
 		$rollbackFile = $rollbackDbPath . '/v' . $upgradeVersion . '.sql';
-		$database     = Db::instance();
+		
 		$backupDbFile = Helpers::getBackupDbName();
 		
 		
@@ -162,6 +164,7 @@ class Backup {
 		
 		foreach ($backupDbList as $sqlFile) {
 			if (file_exists($sqlFile)) {
+				$database     = Db::instance();
 				$sqlScript = file_get_contents($sqlFile);
 				
 				// 使用正则表达式分割SQL脚本成单个语句
@@ -174,7 +177,7 @@ class Backup {
 					$stmt = trim($stmt); // 去除首尾空白字符
 					if (!empty($stmt)) { // 检查SQL语句是否为空
 						if ($database->query($stmt) === FALSE) {
-							$cli->error('Error executing query: ' . $database->error() . ', sql:' . $stmt”);
+							$cli->error('Error executing query: ' . $database->error() . ', sql:' . $stmt);
 							break; // 如果有错误，停止执行
 						}
 					}

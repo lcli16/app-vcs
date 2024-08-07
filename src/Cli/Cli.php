@@ -87,6 +87,11 @@ BANNER;
 		// 项目目录
 		if ($projectPath = $options->getOpt('project_path')) {
 			$this->setConfig('project_path', $projectPath);
+			$checkDir = Helpers::checkPath($projectPath);
+			if (!$checkDir){
+				return false;
+			}
+			Helpers::$config = include $projectPath . '/config/appvcs.php';
 		}
 		
 		// 服务端 API
@@ -167,7 +172,17 @@ BANNER;
 	public function setConfig($name, $value)
 	{
 		$this->config[$name] = $value;
-		Helpers::$config     = $this->config;
+		
+		 $config = $this->config;
+		 foreach ($config as $key => $val){
+			 $systemConfig = Helpers::$config;
+			 if (isset($systemConfig[$key]) && (!$val && $systemConfig[$key]) ){
+				 $config[$key] = $systemConfig[$key];
+			 }else{
+				 $config[$key] = $val;
+			 }
+		 }
+		Helpers::$config     = $config;
 	}
 	public function init()
 	{

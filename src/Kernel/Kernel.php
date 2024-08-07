@@ -38,7 +38,6 @@ class Kernel {
 		
 		$transction->start(['appId' => $appId, 'version' => $version]);
 		
-		
 		$result = \Lcli\AppVcs\Kernel\Request::instance()->upgrade([ 'appId' => $appId, 'version' => $version ]);
 		if (!$result){
 			throw new  AppVcsException('获取版本信息失败');
@@ -62,6 +61,12 @@ class Kernel {
 			$rootPath = Helpers::getRootPath();
 			if (!$rootPath) {
 				throw new  AppVcsException('请配置根目录');
+			}
+		
+			$checkDir = Helpers::checkPath($rootPath);
+			
+			if (!$checkDir){
+				return false;
 			}
 			is_dir($rootPath) or mkdir($rootPath, 0755, true);
 			
@@ -121,8 +126,6 @@ class Kernel {
 				// 获取更新文件
 				$upgradeFilePath = $destinationDir . '/' . $path;
 				$localFilePath = $projectPath . '/' . $path;
-				
-				
 				
 				// 安全文件只运行不下载
 				$safeFileOrDirs = [Helpers::getDatabaseSqlPath($upgradeVersion)];

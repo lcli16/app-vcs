@@ -2,6 +2,8 @@
 
 namespace Lcli\AppVcs;
 
+use Lcli\AppVcs\Cli\Cli;
+
 class Helpers {
 	public static $workPath = 'public/vendor/AppVcs';
 	
@@ -49,9 +51,11 @@ class Helpers {
 	
 	public static function getProjectPath()
 	{
-		$rootPath = self::config('root_path');
-		is_dir($rootPath) or mkdir($rootPath, 0755, true);
-		return $rootPath;
+		$projectPath = self::config('project_path');
+		if ($projectPath){
+			is_dir($projectPath) or mkdir($projectPath, 0755, true);
+		}
+		return $projectPath;
 	}
 	
 	public static function getRootPath()
@@ -213,5 +217,50 @@ class Helpers {
 		$response      = file_get_contents('https://api.ipify.org?format=json');
 		$json_response = json_decode($response, true);
 		return $json_response['ip'];
+	}
+	
+	public   function output($msg, $type='info')
+	{
+		if (php_sapi_name() === 'cli'){
+			switch ($type){
+				case 'error':
+					$this->error($msg);
+					break;
+				case 'success':
+					$this->success($msg);
+					break;
+				case 'warning':
+					$this->warning($msg);
+					break;
+				default:
+					$this->info($msg);
+					break;
+			}
+		}else{
+			throw new AppVcsException($msg);
+		}
+		
+	}
+	
+	public static function checkPath($dir)
+	{
+		$cli = new Cli();
+		// 检查是否有配置文件， 如果没有，那么不是项目目录
+		$configFile = $dir . '/config/appvcs.php';
+		$cli->debug("正在读取配置文件：".$configFile);
+		if (!file_exists($configFile)) {
+			
+			$cli->error('该工作目录下没有配置文件,无法运行，请手动创建配置文件:' . $configFile);
+			return false;
+		} else {
+			$config = include $configFile;
+			$appId  = isset($config['app_id']) ? $config['app_id'] : '';
+			if (!$appId) {
+				$cli->error('配置文件错误，缺少应用 ID（app_id), 请配置文件后重新执行:' . $configFile);
+				return false;
+			}
+		}
+		$cli->success('配置文件解析成功：' . $configFile);
+		return true;
 	}
 }
