@@ -42,17 +42,19 @@ class Kernel {
 		if (!$result){
 			throw new  AppVcsException('获取版本信息失败');
 		}
-		
-		// 保存更新数据
-		$backupDir = Helpers::getBackupPath();
-		Helpers::setUpgradeData($result);
 		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
+		// 获取发布操作类型:0=按需发布,1=全量发布
+		$publishAction = isset($versionInfo['publish_action'])?$versionInfo['publish_action']:0;
+		$upgradeVersion =  $versionInfo['version'];
+		// 保存更新数据
+		Helpers::setUpgradeData($result);
+		
 		try {
 			// 操作更新
 			$files = isset($result['files']) ?$result[ 'files' ]: [];
 			$url = $result[ 'url' ];
 			$fileName = isset($result[ 'fileName' ])?$result[ 'fileName' ]:'app-vcs-upgrade.zip';
-			$tempFilePath = Helpers::getTempFilePath();
+			$tempFilePath = Helpers::getTempFilePath($upgradeVersion);
 			if (!$tempFilePath) {
 				throw new  AppVcsException('请配置根目录');
 			}
@@ -69,6 +71,11 @@ class Kernel {
 				return false;
 			}
 			is_dir($rootPath) or mkdir($rootPath, 0755, true);
+			// 项目目录
+			$projectPath  = Helpers::getProjectPath();
+			if (!$projectPath){
+				$projectPath = $rootPath;
+			}
 			
 			$zipFile = $tempFilePath . '/' . $fileName;
 			
@@ -83,31 +90,41 @@ class Kernel {
 				}
 				$zip->close();
 			}
-			$upgradeVersion =  $versionInfo['version'];
-			
 			
 			// 1.备份文件
-			$backupStatus = Backup::file($files, $result);
+			// 如果是全量发布， 那么备份全部文件
+			if (intval($publishAction) === 1){
+				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
+				$projectFiles = FileSystem::getAllFiles($projectPath, false);
+				$_files = [];
+				
+				foreach ($projectFiles as $fileFullPath) {
+					$path = str_replace($projectPath , '', $fileFullPath);
+					$_files[] = [
+						'path' => $path,
+						'fullPath' => $fileFullPath
+					];
+				}
+				$backupStatus = Backup::file($_files, $result);
+				
+			}else{
+				$backupStatus = Backup::file($files, $result);
+			}
+			
 			if (!$backupStatus){
 				throw new  AppVcsException('升级失败:备份文件失败');
 			}
-			
 			// 2.备份数据库
 			$issetTables = isset($versionInfo['tables_files']);
 			$backup = $issetTables?$versionInfo['tables_files']:[];
+			
 			$backupStatus = Backup::database($backup, $upgradeVersion);
 			if (!$backupStatus){
 				throw new  AppVcsException('升级失败:备份sql失败');
 			}
 			
 			
-			$projectPath  = Helpers::getProjectPath();
-			if (!$projectPath){
-				$projectPath = $rootPath;
-			}
 			
-			// 获取发布操作类型:0=按需发布,1=全量发布
-			$publishAction = isset($versionInfo['publish_action'])?$versionInfo['publish_action']:0;
 			
 			if (intval($publishAction) === 1){
 				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
@@ -152,7 +169,8 @@ class Kernel {
 				}
 				 
 				if (!in_array($path, $safeFileOrDirs)){
-					// var_dump($localFilePath, $upgradeFilePath, $path);
+					
+					
 					switch ($type) {
 						case 'file':
 							Migrate::file($state, $localFilePath, $upgradeFilePath);
@@ -164,12 +182,16 @@ class Kernel {
 							break;
 						case 'config': // 配置更新,
 						default: // 业务数据更新
+							
 							Migrate::file($state, $localFilePath, $upgradeFilePath);
 							break;
 					}
 				}
 				
 			}
+			
+			// 测试升级失败
+			// $d = 1/0;
 			
 			// 如果有脚本指令, 运行脚本
 			$scripts = isset($versionInfo['script'])?$versionInfo['script']:[];
@@ -183,6 +205,7 @@ class Kernel {
 			$transction->success($result);
 			return true;
 		} catch (\Error $e){
+			dump($e);die;
 			self::throwError($result, $transction, $e);
 		} catch (\Exception $e){
 			
@@ -199,6 +222,11 @@ class Kernel {
 		];
 		$transction->rollback($errorData, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
 		throw new AppVcsException($e->getMessage());
+	}
+	
+	public static function rollback()
+	{
+		  Backup::rollback();
 	}
 	
 	

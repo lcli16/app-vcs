@@ -207,37 +207,9 @@ BANNER;
 	
 	public function rollback($appId, $version)
 	{
-		$rootPath = $this->config['root_path'];
-		if (!$rootPath) {
-			$rootPath = dirname(__DIR__, 5);
-		}
-		
-		
-		$workPath          = Helpers::getWorkPath();
-		$workDir           = $rootPath . $workPath;
-		$backupVersionName = str_replace('.', "_", $version);
-		$backupPath        = $workDir . "/backup/v{$backupVersionName}";
-		$data              = [
-			'upgrade' => [
-				'version' => $version
-			],
-		];
-		
-		$this->config['root_path'] = $rootPath;
-		$this->config['app_id']    = $appId;
-		
-		$files    = FileSystem::getAllFiles($backupPath);
-		$fileList = [];
-		foreach ($files as $file) {
-			
-			$fileList[] = [
-				'path'      => str_replace($backupPath, '', $file),
-				'state'     => 'M',
-				'full_path' => $file,
-			];
-		}
-		
-		Backup::rollback($data);
+		$this->setConfig('app_id', $appId);
+		$this->setConfig('version', $version);
+		Backup::rollback([]);
 		$this->success("执行回滚完成! 回滚版本:v{$version}");
 	}
 	

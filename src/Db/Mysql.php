@@ -17,7 +17,7 @@ class Mysql implements DbService {
 			$db = $database[ 'database' ];
 			$user = $database[ 'username' ];
 			$pass = $database[ 'password' ];
-			
+			 
 			// 创建连接
 			$conn = new \mysqli($host, $user, $pass, $db, $port);
 			// 检查连接

@@ -4,20 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs 1.0.3">
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs 1.0.4">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cli/Cli.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cli/Cli.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cli/Invoker.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cli/Invoker.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Config/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Config/config.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Helpers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Http/Request.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Http/Request.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/Backup.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Backup.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Db.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Db.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/FileSystem.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/FileSystem.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Kernel.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/Migrate.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Migrate.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Services/DbService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Services/DbService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/Transaction.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Transaction.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,7 +96,9 @@
       <workItem from="1722850759195" duration="2560000" />
       <workItem from="1722947426930" duration="6787000" />
       <workItem from="1723002796814" duration="2198000" />
-      <workItem from="1723009107235" duration="3012000" />
+      <workItem from="1723009107235" duration="3223000" />
+      <workItem from="1723023187953" duration="7000" />
+      <workItem from="1723023220160" duration="1204000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -319,7 +316,23 @@
       <option name="project" value="LOCAL" />
       <updated>1723008835871</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="app-vcs 1.0.4">
+      <option name="closed" value="true" />
+      <created>1723014683871</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1723014683872</updated>
+    </task>
+    <task id="LOCAL-00029" summary="app-vcs 1.0.4">
+      <option name="closed" value="true" />
+      <created>1723014759842</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1723014759842</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -371,7 +384,8 @@
     <MESSAGE value="app-vcs-1.0.2 没有配置文件时，自动创建" />
     <MESSAGE value="app-vcs 更新说明文档" />
     <MESSAGE value="app-vcs 1.0.3" />
-    <option name="LAST_COMMIT_MESSAGE" value="app-vcs 1.0.3" />
+    <MESSAGE value="app-vcs 1.0.4" />
+    <option name="LAST_COMMIT_MESSAGE" value="app-vcs 1.0.4" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>

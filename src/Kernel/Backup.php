@@ -23,10 +23,9 @@ class Backup {
 	 */
 	public static function file($upgradeFiles, $upgradeData)
 	{
-		$rootPath   = Helpers::getRootPath();
+		$rootPath   = Helpers::getProjectPath();
 		$backupPath = Helpers::getBackupPath();
 		$version    = Helpers::getVersion();
-		
 		foreach ($upgradeFiles as $file) {
 			$path = self::fixPaht($file['path']);
 			if (!$path) {
@@ -65,7 +64,7 @@ class Backup {
 	    if (!$tables){
 			return true;
 	    }
-		 
+	 
 		$database    = Helpers::getDbConfig();
 		$host        = $database['host'];
 		$port        = $database['port'];
@@ -74,10 +73,24 @@ class Backup {
 		$password    = $database['password'];
 		$version     = Helpers::getVersion();
 		$backupFile  = Helpers::getBackupDbName();
+		$dumpTables = [];
+		foreach ($tables as $table){
+			// SQL 查询语句
+			$sql = "SHOW TABLES LIKE '$table'";
+			// 执行查询
+			$isPassTable = Db::instance()->query($sql);
+			// 判断表是否存在
+			if ($isPassTable->num_rows > 0) {
+				 $dumpTables[]  = $table;
+			}
+		}
+		if (!$dumpTables){
+			return [];
+		}
 		
 		// 构建mysqldump命令
 		$command =
-			"mysqldump  --socket=/tmp/mysql.sock  -u'{$username}' -p'{$password}' {$db} " . implode(' ', $tables) . ">'{$backupFile}'";
+			"mysqldump  --socket=/tmp/mysql.sock  -u'{$username}' -p'{$password}' {$db} " . implode(' ', $dumpTables) . ">'{$backupFile}'";
 		
 		// 执行命令
 		exec($command, $output, $return_var);
@@ -112,30 +125,35 @@ class Backup {
 	protected static function rollbackFile($data = [])
 	{
 		$upgradeData  = Helpers::getUpgradeData();
-		$upgradeFiles = isset($upgradeData['files']) ? $upgradeData['files'] : [];
 		
-		$rootPath   = Helpers::getRootPath();
+		$rootPath   = Helpers::getProjectPath();
 		$backupPath = Helpers::getBackupPath();
-		
+		$backupFiles = FileSystem::getFiles($backupPath);
+		// 找到新增的文件， 删除了
+		$upgradeFiles = isset($upgradeData['files']) ? $upgradeData['files'] : [];
 		foreach ($upgradeFiles as $file) {
 			$path = $file['path'];
 			if (!$path) {
 				continue;
 			}
-			
+			$backupFilePath = $backupPath . '/' . $path;
+			$localFilePath  = $rootPath . '/' . $path;
+			// 新增的文件则删除
+			if (!file_exists($backupFilePath) && $file['state'] === 'A'){
+				FileSystem::delete($localFilePath);
+			}
+		}
+		// 恢复备份文件
+		foreach ($backupFiles as $file){
+			$path = $file['path'];
+			if (!$path)  continue;
 			
 			$backupFilePath = $backupPath . '/' . $path;
 			$localFilePath  = $rootPath . '/' . $path;
+			
 			if (file_exists($backupFilePath)){
 				FileSystem::write($localFilePath, file_get_contents($backupFilePath));
-			}else{
-				// 新增的文件则删除
-				if ($file['state'] === 'A') { // A=新增
-					FileSystem::delete($localFilePath);
-				}
 			}
-			
-			
 		}
 		return true;
 	}
@@ -148,7 +166,7 @@ class Backup {
 	protected static function rollbackDb($data = [])
 	{
 		
-		$upgradeData  = isset($data['upgrade']) ? $data['upgrade'] : [];
+		$upgradeData  = Helpers::getUpgradeData();
 		$upgradeVersion = $upgradeData['version'];
 		$rollbackDbPath = Helpers::getRollbackSqlPath($upgradeVersion);
 		$rollbackFile = $rollbackDbPath . '/v' . $upgradeVersion . '.sql';
@@ -171,13 +189,13 @@ class Backup {
 				$delimiter     = ';';          // SQL语句结束符
 				$pattern       = "/;(\r?\n)/"; // 正则表达式匹配语句结束符后跟换行符
 				$sqlStatements = preg_split($pattern, $sqlScript);
-				$cli = new \Lcli\AppVcs\Cli\Cli();
+				
 				// 执行每个SQL语句
 				foreach ($sqlStatements as $stmt) {
 					$stmt = trim($stmt); // 去除首尾空白字符
 					if (!empty($stmt)) { // 检查SQL语句是否为空
 						if ($database->query($stmt) === FALSE) {
-							$cli->error('Error executing query: ' . $database->error() . ', sql:' . $stmt);
+							Helpers::output('Error executing query: ' . $database->error() . ', sql:' . $stmt,'error');
 							break; // 如果有错误，停止执行
 						}
 					}
@@ -187,6 +205,7 @@ class Backup {
 		// 创建了什么表， 创建了就删除
 		$sqlFilePath = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
 		$sqlTables   = Db::getCreateTableRecords($sqlFilePath);
+		 
 		if ($sqlTables){
 			foreach ($sqlTables as $tableName){
 				$database->query("DROP TABLE {$tableName};");

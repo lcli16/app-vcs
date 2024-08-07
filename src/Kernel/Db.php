@@ -65,7 +65,7 @@ class Db {
 		
 		// 使用正则表达式匹配表名
 		// 匹配 CREATE TABLE, INSERT INTO, UPDATE, DELETE FROM, SELECT FROM 语句中的表名
-		preg_match_all('/(?:CREATE\s+TABLE|INSERT\s+INTO|UPDATE|DELETE\s+FROM|SELECT\s+FROM)\s+`?([a-zA-Z0-9_]+)`?\s*/i', $sqlContent, $matches);
+		preg_match_all('/(?:CREATE\s+TABLE)\s+`?([a-zA-Z0-9_]+)`?\s*/i', $sqlContent, $matches);
 		
 		// 获取匹配到的表名
 		$tableNames = $matches[1];

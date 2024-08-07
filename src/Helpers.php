@@ -5,7 +5,7 @@ namespace Lcli\AppVcs;
 use Lcli\AppVcs\Cli\Cli;
 
 class Helpers {
-	public static $workPath = 'public/vendor/AppVcs';
+	public static $workPath = 'storage/appvcs';
 	
 	public static $config = [];
 	
@@ -42,10 +42,10 @@ class Helpers {
 		return $workPath;
 	}
 	
-	public static function getTempFilePath()
+	public static function getTempFilePath($upgradeVersion)
 	{
 		$rootPath     = self::getWorkPath();
-		$tempFilePath = $rootPath . '/temp';
+		$tempFilePath = $rootPath . '/temp/'.$upgradeVersion;
 		is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
 		return $tempFilePath;
 	}
@@ -55,7 +55,10 @@ class Helpers {
 		$projectPath = self::config('project_path');
 		if ($projectPath) {
 			is_dir($projectPath) or mkdir($projectPath, 0755, true);
+		}else{
+			$projectPath = self::getRootPath();
 		}
+		
 		return $projectPath;
 	}
 	
@@ -99,7 +102,7 @@ class Helpers {
 	
 	public static function getDatabaseSqlPath($upgradeVersion)
 	{
-		$rootPath   = self::getTempFilePath();
+		$rootPath   = self::getTempFilePath($upgradeVersion);
 		$backupPath = $rootPath . "/deploy/{$upgradeVersion}/database";
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		return $backupPath;
@@ -108,7 +111,7 @@ class Helpers {
 	public static function generatedDatabaseSqlFilename($version)
 	{
 		$databaseSqlDir = self::getDatabaseSqlPath($version);
-		return $databaseSqlDir . '/v' . $version . '.sql';
+		return $databaseSqlDir . '/mysql.sql';
 		
 	}
 	
@@ -157,7 +160,7 @@ class Helpers {
 	{
 		$backupPath     = self::getBackupPath();
 		$version        = self::getVersion();
-		$backupFileName = $version . '_backup.sql';
+		$backupFileName = $version . '-backup.sql';
 		return $backupPath . '/' . $backupFileName;
 	}
 	
@@ -178,11 +181,15 @@ class Helpers {
 	public static function getVersionPath()
 	{
 		$rootPath = self::getWorkPath();
-		return $rootPath . '/app-vcs-version.txt';
+		$appId = Helpers::getAppId();
+		return $rootPath . "/{$appId}-version.txt";
 	}
 	
 	public static function getVersion()
 	{
+		if (static::$config['version']){
+			return static::$config['version'];
+		}
 		$versionFile = self::getVersionPath();
 		if (!file_exists($versionFile)) {
 			return '1.0.0';
@@ -243,45 +250,46 @@ class Helpers {
 	public function output($msg, $type = 'info')
 	{
 		if (php_sapi_name() === 'cli') {
+			$cli = new Cli();
 			switch ($type) {
 				case 'error':
-					$this->error($msg);
+					$cli->error($msg);
 					break;
 				case 'success':
-					$this->success($msg);
+					$cli->success($msg);
 					break;
 				case 'warning':
-					$this->warning($msg);
+					$cli->warning($msg);
 					break;
 				default:
-					$this->info($msg);
+					$cli->info($msg);
 					break;
 			}
-		} else {
-			throw new AppVcsException($msg);
 		}
 		
 	}
 	
+ 
+	
 	public static function checkPath($dir)
 	{
-		$cli = new Cli();
+	 
 		// 检查是否有配置文件， 如果没有，那么不是项目目录
 		$configFile = $dir . '/config/appvcs.php';
-		$cli->debug("正在读取配置文件：" . $configFile);
+		static::output("正在读取配置文件：" . $configFile, 'debug');
 		if (!file_exists($configFile)) {
 			
-			$cli->error('该工作目录下没有配置文件,无法运行，请手动创建配置文件:' . $configFile);
+			static::output('该工作目录下没有配置文件,无法运行，请手动创建配置文件:' . $configFile, 'error');
 			return false;
 		} else {
 			$config = include $configFile;
 			$appId  = isset($config['app_id']) ? $config['app_id'] : '';
 			if (!$appId) {
-				$cli->error('配置文件错误，缺少应用 ID（app_id), 请配置文件后重新执行:' . $configFile);
+				static::output('配置文件错误，缺少应用 ID（app_id), 请配置文件后重新执行:' . $configFile, 'error');
 				return false;
 			}
 		}
-		$cli->success('配置文件解析成功：' . $configFile);
+		static::output('配置文件解析成功：' . $configFile,'success');
 		return true;
 	}
 }

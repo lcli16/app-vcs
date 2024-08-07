@@ -56,21 +56,39 @@ class FileSystem {
 		}
 	}
 	
-	static function getAllFiles($path)
+	public static function getFiles($dir)
+	{
+		$files = static::getAllFiles($dir);
+		$_files = [];
+		foreach ($files as $fileFullPath) {
+			$path = str_replace($dir , '', $fileFullPath);
+			$_files[] = [
+				'path' => $path,
+				'fullPath' => $fileFullPath
+			];
+		}
+		return $_files;
+	}
+	
+	static function getAllFiles($path, $absolutePath=true)
 	{
 		$files = [];
+		
 		// 检查路径是否存在并且是目录
 		if (is_dir($path)) {
 			$dir = opendir($path);
 			while (false !== ($file = readdir($dir))) {
 				if ($file != '.' && $file != '..') {
 					$fullPath = $path . DIRECTORY_SEPARATOR . $file;
+					
 					// 如果是目录，则递归调用自身
 					if (is_dir($fullPath)) {
-						$files = array_merge($files, static::getAllFiles($fullPath));
+						$files = array_merge($files, static::getAllFiles($fullPath, $absolutePath));
 					} else {
 						// 如果是文件，则添加到文件列表中
+						
 						$files[] = $fullPath;
+						
 					}
 				}
 			}

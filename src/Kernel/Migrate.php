@@ -48,16 +48,19 @@ class Migrate {
 	{
 		$dir = dirname($localFilePath);
 		is_dir($dir) or mkdir($dir, 0755, true);
-		
+		if (!file_exists($upgradeFilePath)){
+			return;
+		}
 		switch ($state) {
-			case 'A': // 新增
-			case 'M': // 修改
-				file_put_contents($localFilePath, file_get_contents($upgradeFilePath));
-				break;
+			
 			case 'D': // 删除
 				@unlink($localFilePath);
 				break;
+			case 'A': // 新增
+			case 'M': // 修改
 			default:
+				
+				file_put_contents($localFilePath, file_get_contents($upgradeFilePath));
 				break;
 		}
 	}
