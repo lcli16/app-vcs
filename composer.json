@@ -5,11 +5,11 @@
   "license": "Apache-2.0",
   "require": {
     "php": ">=5.6",
-    "wp-cli/php-cli-tools": "0.*"
+    "jrb-it/php-cli": "1.*"
   },
   "scripts": {
     "post-install-cmd": [
-      "Lcli\\AppVcs\\Helpers::generatedConfig",
+      "Lcli\\AppVcs\\Helpers::generatedConfig"
     ]
   },
   "bin": ["bin/appvcs"],
