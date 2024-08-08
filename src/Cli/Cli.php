@@ -54,10 +54,10 @@ BANNER;
 		$options->setHelp($banner);
 		$options->registerOption('version', '版本信息', 'v');
 		// $options->registerOption('register', '注册客户端', 'r');
-		$options->registerCommand("register", "注册客户端");
+		$options->registerCommand('register', '注册客户端');
 		$options->registerArgument('appId', 'APP-VCS 管理平台应用 ID', true);
-		$options->registerCommand("rollback", "回滚项目版本");
-		$options->registerCommand("deploy", "部署项目");
+		$options->registerCommand('rollback', '回滚项目版本');
+		$options->registerCommand('deploy', '部署项目');
 		$options->registerCommand('init', '初始化插件');
 		
 		$options->registerOption('url', '设置服务端APi 地址', 'u', true);
@@ -78,7 +78,7 @@ BANNER;
 		$cmd  = $options->getCmd();
 		$args = $options->getArgs();
 		// 客户端 ID
-		if ($clientId = $options->getOpt("client_id")) {
+		if ($clientId = $options->getOpt('client_id')) {
 			$this->setConfig('client_id', $clientId);
 		}
 		// 服务端目录
@@ -190,7 +190,7 @@ BANNER;
 	public function init()
 	{
 		Helpers::generatedConfig($this->config);
-		$this->success("初始化项目完成！ 请前往 config/appvcs.php 配置插件！");
+		$this->success('初始化项目完成！ 请前往 config/appvcs.php 配置插件！');
 	}
 	
 	public function deploy($appId, $version)
@@ -225,7 +225,7 @@ BANNER;
 			$this->setConfig('root_path', Helpers::getRootPath());
 		}
 		$config = $this->config;
-		is_dir($config['root_path'] . "/" . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
+		is_dir($config['root_path'] . '/' . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
 		$data = [
 			'client_id' => $serverIp,
 			'app_id'    => $appId,
@@ -258,9 +258,15 @@ BANNER;
 	{
 		$this->debug('正在重启脚本...');
 		$scriptName = Helpers::getWorkPath();
-		$result     = shell_exec("ps -ef | grep '{$scriptName}' | grep -v grep | awk '{print $2}' | xargs -r kill -9");
-		$this->success('脚本重启成功！:'.$result);
+		$result     = shell_exec("pgrep -f '$scriptName'");
+		if ($result) {
+			$pids = array_filter(explode("\n", $result));
+			foreach ($pids as $pid) {
+				if ($pid && is_numeric($pid)) {
+					shell_exec("kill -9 $pid");
+				}
+			}
+		}
+		$this->success('脚本重启成功！:' . $result);
 	}
-	
-	
 }
