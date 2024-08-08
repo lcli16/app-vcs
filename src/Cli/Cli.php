@@ -97,6 +97,7 @@ BANNER;
 		
 		// 服务端 API
 		if ($url = $options->getOpt('url')) {
+			
 			$this->setConfig('server_url', $url);
 		}
 		// 数据库配置
@@ -255,16 +256,10 @@ BANNER;
 	
 	function killScript($appId)
 	{
-		$scriptName = "/AppVcs/{$appId}/";
-		$result     = shell_exec("pgrep -f '$scriptName'");
-		if ($result) {
-			$pids = array_filter(explode("\n", $result));
-			foreach ($pids as $pid) {
-				if ($pid && is_numeric($pid)) {
-					shell_exec("kill -9 $pid");
-				}
-			}
-		}
+		$this->debug('正在重启脚本...');
+		$scriptName = Helpers::getWorkPath();
+		$result     = shell_exec("ps -ef | grep '{$scriptName}' | grep -v grep | awk '{print $2}' | xargs -r kill -9");
+		$this->success('脚本重启成功！:'.$result);
 	}
 	
 	

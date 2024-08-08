@@ -38,14 +38,14 @@ class Helpers {
 	public static function getWorkPath()
 	{
 		$rootPath = static::getRootPath();
-		$workPath = $rootPath . '/' . static::$workPath . "/" . self::getAppId();
+		$workPath = $rootPath . '/' . static::$workPath . '/' . self::getAppId();
 		return $workPath;
 	}
 	
 	public static function getTempFilePath($upgradeVersion)
 	{
 		$rootPath     = self::getWorkPath();
-		$tempFilePath = $rootPath . '/temp/'.$upgradeVersion;
+		$tempFilePath = $rootPath . '/temp/' . $upgradeVersion;
 		is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
 		return $tempFilePath;
 	}
@@ -55,7 +55,7 @@ class Helpers {
 		$projectPath = self::config('project_path');
 		if ($projectPath) {
 			is_dir($projectPath) or mkdir($projectPath, 0755, true);
-		}else{
+		} else {
 			$projectPath = self::getRootPath();
 		}
 		
@@ -67,7 +67,7 @@ class Helpers {
 		$rootPath = self::config('root_path');
 		if (!$rootPath) {
 			// 查找配置文件
-			$findRootPath                = static::findRootPath();
+			$findRootPath = static::findRootPath();
 			
 			static::$config['root_path'] = $findRootPath;
 			return $findRootPath;
@@ -174,6 +174,7 @@ class Helpers {
 			// 在服务端目录上一级保存, 以免出现全量发布, 未指定项目目录或默认目录导致备份文件一同被删除情况
 			$backupPath = $rootPath . '/backup/' . self::getVersion();
 		}
+		// var_dump($backupPath);die;
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		return $backupPath;
 	}
@@ -181,13 +182,13 @@ class Helpers {
 	public static function getVersionPath()
 	{
 		$rootPath = self::getWorkPath();
-		$appId = Helpers::getAppId();
+		$appId    = Helpers::getAppId();
 		return $rootPath . "/{$appId}-version.txt";
 	}
 	
 	public static function getVersion()
 	{
-		if (static::$config['version']){
+		if (static::$config['version']) {
 			return static::$config['version'];
 		}
 		$versionFile = self::getVersionPath();
@@ -247,7 +248,7 @@ class Helpers {
 		return $json_response['ip'];
 	}
 	
-	public function output($msg, $type = 'info')
+	public static function output($msg, $type = 'info')
 	{
 		if (php_sapi_name() === 'cli') {
 			$cli = new Cli();
@@ -269,14 +270,13 @@ class Helpers {
 		
 	}
 	
- 
 	
 	public static function checkPath($dir)
 	{
-	 
+		
 		// 检查是否有配置文件， 如果没有，那么不是项目目录
 		$configFile = $dir . '/config/appvcs.php';
-		static::output("正在读取配置文件：" . $configFile, 'debug');
+		static::output('正在读取配置文件：' . $configFile, 'debug');
 		if (!file_exists($configFile)) {
 			
 			static::output('该工作目录下没有配置文件,无法运行，请手动创建配置文件:' . $configFile, 'error');
@@ -289,7 +289,7 @@ class Helpers {
 				return false;
 			}
 		}
-		static::output('配置文件解析成功：' . $configFile,'success');
+		static::output('配置文件解析成功：' . $configFile, 'success');
 		return true;
 	}
 }
