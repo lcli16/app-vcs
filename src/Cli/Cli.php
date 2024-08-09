@@ -91,7 +91,7 @@ BANNER;
 			$checkDir = Helpers::checkPath($projectPath);
 			if (!$checkDir) {
 				return false;
-			} 
+			}
 		}
 		
 		// 服务端 API
@@ -222,11 +222,11 @@ BANNER;
 		$serverIp = Helpers::getServerIp();
 		if (!$this->config['root_path']) {
 			$this->setConfig('root_path', Helpers::getRootPath());
-		}else{
-			$configFile = dirname(__DIR__, 5).'/config/config.php';
-			$this->debug("正在读取配置文件：".$configFile);
-			if (!file_exists($configFile)){
-				$this->warning("配置文件不存在，正在注册配置文件：".$configFile);
+		} else {
+			$configFile = dirname(__DIR__, 5) . '/config/appvcs.php';
+			$this->debug('正在读取配置文件：' . $configFile);
+			if (!file_exists($configFile)) {
+				$this->warning('配置文件不存在，正在注册配置文件：' . $configFile);
 				$this->init();
 			}
 		}
@@ -249,14 +249,14 @@ BANNER;
 			$this->killScript($appId);
 			
 			foreach ($command as $console) {
-				$date = date('Y-m-d H:i:s');
-				$state = isset($console['state'])?$console['state']:'debug';
+				$date  = date('Y-m-d H:i:s');
+				$state = isset($console['state']) ? $console['state'] : 'debug';
 				Helpers::output("[$date] " . $console['describe'], $state);
-				$cmd = isset($console['command'])?$console['command']:'';
-				if ($cmd){
+				$cmd = isset($console['command']) ? $console['command'] : '';
+				if ($cmd) {
 					$output = shell_exec($cmd);
-					$this->info("[$date] 执行脚本命令：".$console['command']);
-					$date   = date('Y-m-d H:i:s');
+					$this->info("[$date] 执行脚本命令：" . $console['command']);
+					$date = date('Y-m-d H:i:s');
 					$this->success("[$date] " . trim($output) ? $output : '执行成功');
 				}
 			}
