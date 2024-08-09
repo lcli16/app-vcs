@@ -222,7 +222,15 @@ BANNER;
 		$serverIp = Helpers::getServerIp();
 		if (!$this->config['root_path']) {
 			$this->setConfig('root_path', Helpers::getRootPath());
+		}else{
+			$configFile = dirname(__DIR__, 5).'/config/config.php';
+			$this->debug("正在读取配置文件：".$configFile);
+			if (!file_exists($configFile)){
+				$this->warning("配置文件不存在，正在注册配置文件：".$configFile);
+				$this->init();
+			}
 		}
+		
 		$config = $this->config;
 		is_dir($config['root_path'] . '/' . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
 		$data = [
