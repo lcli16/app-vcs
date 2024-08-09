@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs 1.0.6">
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs 1.0.7">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/appvcs" beforeDir="false" afterPath="$PROJECT_DIR$/bin/appvcs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/appvcs.bat" beforeDir="false" afterPath="$PROJECT_DIR$/bin/appvcs.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/FileSystem.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/FileSystem.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Kernel.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Migrate.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Migrate.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cli/Cli.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cli/Cli.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Helpers.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +95,7 @@
       <workItem from="1723023187953" duration="7000" />
       <workItem from="1723023220160" duration="4742000" />
       <workItem from="1723080873672" duration="4865000" />
-      <workItem from="1723185470951" duration="277000" />
+      <workItem from="1723185470951" duration="3039000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -356,7 +353,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723099402262</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="app-vcs 1.0.7">
+      <option name="closed" value="true" />
+      <created>1723185775956</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1723185775956</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -411,7 +416,8 @@
     <MESSAGE value="app-vcs 1.0.4" />
     <MESSAGE value="app-vcs 1.0.5" />
     <MESSAGE value="app-vcs 1.0.6" />
-    <option name="LAST_COMMIT_MESSAGE" value="app-vcs 1.0.6" />
+    <MESSAGE value="app-vcs 1.0.7" />
+    <option name="LAST_COMMIT_MESSAGE" value="app-vcs 1.0.7" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>

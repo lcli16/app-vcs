@@ -262,6 +262,9 @@ class Helpers {
 				case 'warning':
 					$cli->warning($msg);
 					break;
+				case 'debug':
+					$cli->debug($msg);
+					break;
 				default:
 					$cli->info($msg);
 					break;
@@ -274,22 +277,10 @@ class Helpers {
 	public static function checkPath($dir)
 	{
 		
-		// 检查是否有配置文件， 如果没有，那么不是项目目录
-		$configFile = $dir . '/config/appvcs.php';
-		static::output('正在读取配置文件：' . $configFile, 'debug');
-		if (!file_exists($configFile)) {
-			
-			static::output('该工作目录下没有配置文件,无法运行，请手动创建配置文件:' . $configFile, 'error');
-			return false;
-		} else {
-			$config = include $configFile;
-			$appId  = isset($config['app_id']) ? $config['app_id'] : '';
-			if (!$appId) {
-				static::output('配置文件错误，缺少应用 ID（app_id), 请配置文件后重新执行:' . $configFile, 'error');
-				return false;
-			}
+		static::output('读取配置:');
+		foreach (Helpers::config() as $configkey => $configValue){
+			static::output( $configkey.":".$configValue);
 		}
-		static::output('配置文件解析成功：' . $configFile, 'success');
 		return true;
 	}
 }

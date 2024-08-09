@@ -91,8 +91,7 @@ BANNER;
 			$checkDir = Helpers::checkPath($projectPath);
 			if (!$checkDir) {
 				return false;
-			}
-			Helpers::$config = include $projectPath . '/config/appvcs.php';
+			} 
 		}
 		
 		// 服务端 API
@@ -243,10 +242,15 @@ BANNER;
 			
 			foreach ($command as $console) {
 				$date = date('Y-m-d H:i:s');
-				echo "[$date] " . $console['describe'] . "\n";
-				$output = shell_exec($console['command']);
-				$date   = date('Y-m-d H:i:s');
-				echo "[$date] " . trim($output) ? $output : '执行成功' . "\n";
+				$state = isset($console['state'])?$console['state']:'debug';
+				Helpers::output("[$date] " . $console['describe'], $state);
+				$cmd = isset($console['command'])?$console['command']:'';
+				if ($cmd){
+					$output = shell_exec($cmd);
+					$this->info("[$date] 执行脚本命令：".$console['command']);
+					$date   = date('Y-m-d H:i:s');
+					$this->success("[$date] " . trim($output) ? $output : '执行成功');
+				}
 			}
 		}
 		$date = date('Y-m-d H:i:s');

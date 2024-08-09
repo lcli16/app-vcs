@@ -132,10 +132,12 @@ class Kernel {
 			}
 			
 			// 3.开始执行升级
+			Helpers::output("正在获取更新文件", "debug");
 			foreach ( $files as $file ) {
 				$state = $file[ 'state' ];
 				$path = $file[ 'path' ];
 				$type = $file[ 'type' ];
+				Helpers::output("{$path}-{$state}-{$type}", 'debug');
 				if (!$path) {
 					continue;
 				}
@@ -164,7 +166,7 @@ class Kernel {
 				foreach ($filterFiles as $filterFileItem){
 					$isContains =  strpos($path, $filterFileItem)!==false;
 					if (!$isContains){
-						break;
+						continue;
 					}
 				}
 				 
