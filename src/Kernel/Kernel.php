@@ -205,7 +205,6 @@ class Kernel {
 			$transction->success($result);
 			return true;
 		} catch (\Error $e){
-			dump($e);die;
 			self::throwError($result, $transction, $e);
 		} catch (\Exception $e){
 			

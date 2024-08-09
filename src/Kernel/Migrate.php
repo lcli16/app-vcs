@@ -6,7 +6,7 @@ use Lcli\AppVcs\Helpers;
 use Lcli\AppVcs\AppVcsException;
 
 class Migrate {
-	 
+	
 	/**
 	 * 数据库迁移
 	 * @param $version
@@ -18,16 +18,16 @@ class Migrate {
 		
 		// 读取SQL文件
 		$sqlFile = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
-		if (!file_exists($sqlFile)){
+		if (!file_exists($sqlFile)) {
 			return;
 		}
 		$sqlScript = file_get_contents($sqlFile);
 		
 		// 分割SQL脚本成单个语句
 		$statements = explode(";\n", $sqlScript);
-	 
+		
 		// 执行每个SQL语句
-		foreach ( $statements as $statement ) {
+		foreach ($statements as $statement) {
 			if (trim($statement) != '') { // 忽略空语句
 				$conn = Db::instance();
 				if (!$conn->query($statement)) {
@@ -48,11 +48,10 @@ class Migrate {
 	{
 		$dir = dirname($localFilePath);
 		is_dir($dir) or mkdir($dir, 0755, true);
-		if (!file_exists($upgradeFilePath)){
+		if (!file_exists($upgradeFilePath)) {
 			return;
 		}
 		switch ($state) {
-			
 			case 'D': // 删除
 				@unlink($localFilePath);
 				break;

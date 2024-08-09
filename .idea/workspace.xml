@@ -4,15 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs 1.0.4">
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs 1.0.6">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cli/Cli.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cli/Cli.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Helpers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Backup.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Backup.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/appvcs" beforeDir="false" afterPath="$PROJECT_DIR$/bin/appvcs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/appvcs.bat" beforeDir="false" afterPath="$PROJECT_DIR$/bin/appvcs.bat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/FileSystem.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/FileSystem.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Kernel.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Kernel/Migrate.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Migrate.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Transaction.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Transaction.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,8 +72,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PS-241.18034.69" />
-        <option value="bundled-php-predefined-ba97393d7c68-48a1a656d44e-com.jetbrains.php.sharedIndexes-PS-241.18034.69" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PS-241.18968.24" />
+        <option value="bundled-php-predefined-ba97393d7c68-48a1a656d44e-com.jetbrains.php.sharedIndexes-PS-241.18968.24" />
       </set>
     </attachedChunks>
   </component>
@@ -98,7 +96,9 @@
       <workItem from="1723002796814" duration="2198000" />
       <workItem from="1723009107235" duration="3223000" />
       <workItem from="1723023187953" duration="7000" />
-      <workItem from="1723023220160" duration="1204000" />
+      <workItem from="1723023220160" duration="4742000" />
+      <workItem from="1723080873672" duration="4865000" />
+      <workItem from="1723185470951" duration="277000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -332,7 +332,31 @@
       <option name="project" value="LOCAL" />
       <updated>1723014759842</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="app-vcs 1.0.5">
+      <option name="closed" value="true" />
+      <created>1723028945081</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1723028945081</updated>
+    </task>
+    <task id="LOCAL-00031" summary="app-vcs 1.0.6">
+      <option name="closed" value="true" />
+      <created>1723097660551</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1723097660551</updated>
+    </task>
+    <task id="LOCAL-00032" summary="app-vcs 1.0.6">
+      <option name="closed" value="true" />
+      <created>1723099402262</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1723099402262</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -385,7 +409,9 @@
     <MESSAGE value="app-vcs 更新说明文档" />
     <MESSAGE value="app-vcs 1.0.3" />
     <MESSAGE value="app-vcs 1.0.4" />
-    <option name="LAST_COMMIT_MESSAGE" value="app-vcs 1.0.4" />
+    <MESSAGE value="app-vcs 1.0.5" />
+    <MESSAGE value="app-vcs 1.0.6" />
+    <option name="LAST_COMMIT_MESSAGE" value="app-vcs 1.0.6" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>

@@ -25,34 +25,17 @@ class FileSystem {
 		}
 		return false;
 	}
-
-	public static function  clearDir($dir, $isChildrenDir=false) {
-		if (!is_dir($dir)) {
-			throw new AppVcsException("$dir must be a directory");
-		}
-		$files = array_diff(scandir($dir), array('.', '..'));
-		
-		if (file_exists($dir.'/appvcs.php')) {
-			return;
-		}
-		if (!$isChildrenDir){
-			$checkDir = Helpers::checkPath($dir);
-			if (!$checkDir){
-				return false;
+	
+	public static function  clearDir($projectDir ) {
+		$upgradeData = Helpers::getUpgradeData();
+		$files = $upgradeData['files'];
+		foreach ($files as $file){
+			$filePath = $projectDir.'/'.$file['path'];
+			if ($file['state'] === 'D' && is_file($filePath)){
+				Helpers::output('正在清除删除文件命令：'.$filePath,'debug');
+				@unlink($filePath);
+				Helpers::output('删除文件完成：'.$filePath, 'success');
 			}
-		}
-		
-		foreach ($files as $file) {
-			$path = $dir . '/' . $file;
-			
-			if (is_dir($path)) {
-				self::clearDir($path, true); // 递归删除子目录中的文件
-			} else {
-				@unlink($path); // 删除文件
-			}
-		}
-		if ($isChildrenDir){
-			rmdir($dir); // 删除目录
 		}
 	}
 	
