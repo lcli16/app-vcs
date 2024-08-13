@@ -4,14 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs c update">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs  update">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Helpers.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Backup.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Backup.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Kernel.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Migrate.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Migrate.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Kernel/Transaction.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Transaction.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Config/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Config/config.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,9 +39,6 @@
     &quot;accountId&quot;: &quot;a4faf9bd-7975-4f9f-b9d5-b45e2685770c&quot;
   }
 }</component>
-  <component name="PerforceDirect.Settings">
-    <option name="CHARSET" value="无" />
-  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -103,7 +97,8 @@
       <workItem from="1723023220160" duration="4742000" />
       <workItem from="1723080873672" duration="4865000" />
       <workItem from="1723185470951" duration="7259000" />
-      <workItem from="1723373322644" duration="1347000" />
+      <workItem from="1723373322644" duration="2350000" />
+      <workItem from="1723533163788" duration="546000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -401,7 +396,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723517987670</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="app-vcs  update">
+      <option name="closed" value="true" />
+      <created>1723530262393</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1723530262393</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -433,7 +436,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Merge remote-tracking branch 'origin/main'" />
     <MESSAGE value="app-vcs-v1.2.1&#10;&#10;[新增]安装回调&#10;[修改]修复优化系统" />
     <MESSAGE value="内测第一版本发布&#10;&#10;[修复]删除文件操作导致操作失败&#10;[新增]使用文档" />
     <MESSAGE value="文档修改&#10;&#10;[更新]更新文档" />
@@ -458,7 +460,8 @@
     <MESSAGE value="app-vcs" />
     <MESSAGE value="app-vcs cli update" />
     <MESSAGE value="app-vcs c update" />
-    <option name="LAST_COMMIT_MESSAGE" value="app-vcs c update" />
+    <MESSAGE value="app-vcs  update" />
+    <option name="LAST_COMMIT_MESSAGE" value="app-vcs  update" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>
