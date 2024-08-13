@@ -283,10 +283,10 @@ class Helpers {
 					$cli->warning($msg);
 					break;
 				case 'debug':
-					$cli->debug($msg);
+					$cli->info($msg);
 					break;
 				default:
-					$cli->info($msg);
+					$cli->debug($msg);
 					break;
 			}
 		}

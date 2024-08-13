@@ -18,24 +18,28 @@ class Migrate {
 		
 		// 读取SQL文件
 		$sqlFile = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
-		 
+		Helpers::output('读取迁移数据库文件:'.$sqlFile);
 		if (!file_exists($sqlFile)) {
+			Helpers::output('数据库迁移文件不存在:'.$sqlFile,'warning');
 			return;
 		}
 		
 		$backupPath = Helpers::getDatabaseSqlPath($upgradeVersion);
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		$sqlScript = file_get_contents($sqlFile);
-		
+		Helpers::output( $sqlScript);
 		// 分割SQL脚本成单个语句
 		$statements = explode(";\n", $sqlScript);
 		
 		// 执行每个SQL语句
 		foreach ($statements as $statement) {
+			Helpers::output( '正在执行数据库迁移语句'.$statement);
 			if (trim($statement) != '') { // 忽略空语句
 				$conn = Db::instance();
 				if (!$conn->query($statement)) {
 					throw new  AppVcsException('数据库更新错误:' . $conn->error());
+				}else{
+					Helpers::output( '数据库迁移语句执行成功'.$statement, 'success');
 				}
 			}
 		}
@@ -55,6 +59,7 @@ class Migrate {
 		
 		switch ($state) {
 			case 'D': // 删除
+				Helpers::output( '正在迁文件， 操作：'.$state.', 文件：'.$upgradeFilePath,'warning');
 				if (file_exists($localFilePath)) {
 					@unlink($localFilePath);
 				}
@@ -64,11 +69,13 @@ class Migrate {
 			case 'A': // 新增
 			case 'M': // 修改
 			default:
+			Helpers::output( '正在迁文件， 操作：'.$state.', 文件：'.$upgradeFilePath,'debug');
 				if (!file_exists($upgradeFilePath)) {
 					return;
 				}
 				file_put_contents($localFilePath, file_get_contents($upgradeFilePath));
 				break;
 		}
+		Helpers::output( '执行完成， 操作：'.$state.', 文件：'.$upgradeFilePath,'success');
 	}
 }

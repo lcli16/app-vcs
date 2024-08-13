@@ -32,7 +32,7 @@ class Kernel {
 	 */
 	public static function upgrade($appId, $version = null)
 	{
-		
+		Helpers::output('开始执行升级程序:应用ID:'.$appId.', 版本号:'.$version);
 		// 开始事务
 		$transction = new Transaction();
 		
@@ -42,6 +42,8 @@ class Kernel {
 		if (!$result){
 			throw new  AppVcsException('获取版本信息失败');
 		}
+		Helpers::output('正在获取更新应用信息'.$appId.', 版本号:'.$version);
+		Helpers::output(json_encode($result,JSON_UNESCAPED_UNICODE));
 		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
 		// 获取发布操作类型:0=按需发布,1=全量发布
 		$publishAction = isset($versionInfo['publish_action'])?$versionInfo['publish_action']:0;
@@ -79,17 +81,8 @@ class Kernel {
 			
 			$zipFile = Helpers::getZipPath() . '/' . $fileName;
 			
-			// 下载远程文件并保存到本地
-			$filePutRsult = @file_put_contents($zipFile, file_get_contents($url));
-			
 			$destinationDir = Helpers::getProjectPath();
-			if ($filePutRsult){
-				$zip = new ZipArchive();
-				if ($zip->open($zipFile) === TRUE) {
-					$zip->extractTo($destinationDir);
-				}
-				$zip->close();
-			}
+			
 			
 			// 1.备份文件
 			// 如果是全量发布， 那么备份全部文件
@@ -125,7 +118,20 @@ class Kernel {
 				return ;
 			}
 			
+			Helpers::output('正在下载更新包补丁'.$url);
+			// 下载远程文件并保存到本地
+			$filePutRsult = @file_put_contents($zipFile, file_get_contents($url));
+			if ($filePutRsult){
+				Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir);
+				$zip = new ZipArchive();
+				if ($zip->open($zipFile) === TRUE) {
+					$zip->extractTo($destinationDir);
+				}
+				$zip->close();
+			}
+			
 			if (intval($publishAction) === 1){
+				Helpers::output('补丁包类型：全量发布'.$url);
 				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
 				FileSystem::clearDir($projectPath);
 			}
@@ -137,7 +143,7 @@ class Kernel {
 				$state = $file[ 'state' ];
 				$path = $file[ 'path' ];
 				$type = $file[ 'type' ];
-				Helpers::output("{$path}-{$state}-{$type}", 'debug');
+				Helpers::output("正在迁移文件：{$path}-{$state}-{$type}", 'debug');
 				if (!$path) {
 					continue;
 				}
@@ -151,14 +157,18 @@ class Kernel {
 				if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']){
 					$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
 				}
+				Helpers::output("安全文件", 'debug');
+				Helpers::output(json_encode($safeFileOrDirs, JSON_UNESCAPED_UNICODE), 'debug');
 				// 过滤文件
 				$filterFiles = isset($versionInfo['filter_files'])?$versionInfo['filter_files']:[];
 				if (!$filterFiles){
 					$filterFiles = [];
 				}
-				
+				Helpers::output('过滤文件', 'debug');
+				Helpers::output(json_encode($filterFiles, JSON_UNESCAPED_UNICODE), 'debug');
 				// 存在指定过滤文件， 那么直接过滤
 				if (in_array($path, $filterFiles)   ){
+					Helpers::output('已过滤：'.$path.'，文件', 'warning');
 					continue;
 				}
 			 
@@ -166,13 +176,14 @@ class Kernel {
 				foreach ($filterFiles as $filterFileItem){
 					$isContains =  strpos($path, $filterFileItem)!==false;
 					if (!$isContains){
-						continue;
+						Helpers::output('已过滤：'.$path.'，文件(包含)', 'warning');
+						continue 2;
 					}
 				}
 				 
 				if (!in_array($path, $safeFileOrDirs)){
 					
-					
+					Helpers::output('正在安装升级文件,类型：'.$type.'，安装至：'.$localFilePath.', 升级文件：'.$upgradeFilePath);
 					switch ($type) {
 						case 'file':
 							Migrate::file($state, $localFilePath, $upgradeFilePath);
@@ -190,7 +201,7 @@ class Kernel {
 				}
 				
 			}
-			
+			Helpers::output('文件升级完成', 'success');
 			// 测试升级失败
 			// $d = 1/0;
 			
@@ -199,7 +210,9 @@ class Kernel {
 			if ($scripts && is_array($scripts)){
 				foreach ($scripts as $cmd){
 					if (!$cmd) continue;
-					shell_exec($cmd);
+					Helpers::output('正在执行脚本:'.$cmd);
+					$output = shell_exec($cmd);
+					Helpers::output($output);
 				}
 			}
 			// $d = 1/0;
@@ -219,6 +232,7 @@ class Kernel {
 	
 	public static function throwError($result, $transction, $e)
 	{
+		Helpers::output('更新失败:'.$e->getMessage(),'error');
 		$errorData = [
 			'upgrade' => $result,
 		];

@@ -21,13 +21,14 @@ class Transaction {
 	
 	public function success($data = null)
 	{
+		Helpers::output('更新程序成功！正在同步信息中','success');
 		$preVersion = Helpers::getVersion();
 		$appId = Helpers::getAppId();
 		Helpers::setVersion($data['version']);
 		$version = isset($data['version'])?$data['version']:'';
 		$state = 'success';
 		$result = Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'pre_version'=>$preVersion, 'version' => $version, 'content' => $data ]);
-		
+		Helpers::output('信息同步完成！安装结束！', 'success');
 		$this->status = 2;
 	}
 	

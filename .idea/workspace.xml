@@ -4,8 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs cli update">
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs c update">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Helpers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/Backup.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Backup.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Kernel.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/Migrate.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Migrate.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/Transaction.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Transaction.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +103,7 @@
       <workItem from="1723023220160" duration="4742000" />
       <workItem from="1723080873672" duration="4865000" />
       <workItem from="1723185470951" duration="7259000" />
-      <workItem from="1723373322644" duration="597000" />
+      <workItem from="1723373322644" duration="1347000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -387,7 +393,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723201401316</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary="app-vcs c update">
+      <option name="closed" value="true" />
+      <created>1723517987670</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1723517987670</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -419,7 +433,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="1.1.3 首发第一版" />
     <MESSAGE value="Merge remote-tracking branch 'origin/main'" />
     <MESSAGE value="app-vcs-v1.2.1&#10;&#10;[新增]安装回调&#10;[修改]修复优化系统" />
     <MESSAGE value="内测第一版本发布&#10;&#10;[修复]删除文件操作导致操作失败&#10;[新增]使用文档" />
@@ -444,7 +457,8 @@
     <MESSAGE value="app-vcs 1.0.8" />
     <MESSAGE value="app-vcs" />
     <MESSAGE value="app-vcs cli update" />
-    <option name="LAST_COMMIT_MESSAGE" value="app-vcs cli update" />
+    <MESSAGE value="app-vcs c update" />
+    <option name="LAST_COMMIT_MESSAGE" value="app-vcs c update" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>
