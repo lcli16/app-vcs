@@ -60,6 +60,7 @@ BANNER;
 		$options->registerCommand('deploy', '部署项目');
 		$options->registerCommand('init', '初始化插件');
 		
+		$options->registerOption('project_id', '定义项目名称', 'n', true);
 		$options->registerOption('url', '设置服务端APi 地址', 'u', true);
 		$options->registerOption('project_path', '项目目录', 'P', true);
 		$options->registerOption('client_id', '客户端 ID', 'c', true);
@@ -77,6 +78,10 @@ BANNER;
 		
 		$cmd  = $options->getCmd();
 		$args = $options->getArgs();
+		// 客户端 ID
+		if ($projectId = $options->getOpt('project_id')) {
+			$this->setConfig('project_id', $projectId);
+		}
 		// 客户端 ID
 		if ($clientId = $options->getOpt('client_id')) {
 			$this->setConfig('client_id', $clientId);
@@ -234,10 +239,11 @@ BANNER;
 		$config = $this->config;
 		is_dir($config['root_path'] . '/' . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
 		$data = [
-			'client_id' => $serverIp,
-			'app_id'    => $appId,
-			'title'     => $serverIp,
-			'config'    => $config
+			'project_id' => $this->config['project_id'],
+			'client_id'  => $serverIp,
+			'app_id'     => $appId,
+			'title'      => $serverIp,
+			'config'     => $config
 		];
 		
 		// 注册客户端

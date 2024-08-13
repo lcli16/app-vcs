@@ -52,43 +52,45 @@ class Backup {
 	 */
 	public static function database($tables, $upgradeVersion)
 	{
-		
+		if (!$tables) {
+			return true;
+		}
 		$tables      = array_unique($tables);
 		$sqlFilePath = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
 		$sqlTables   = Db::getOperatorTableRecords($sqlFilePath);
-		if ($sqlTables){
-			$tables      = array_merge($tables, $sqlTables);
+		if ($sqlTables) {
+			$tables = array_merge($tables, $sqlTables);
 			// 设置操作表
-			Helpers::setUpgradeData( ['versionInfo'=> ['tables_files' => $tables]]);
+			Helpers::setUpgradeData(['versionInfo' => ['tables_files' => $tables]]);
 		}
-	    if (!$tables){
-			return true;
-	    }
-	 
-		$database    = Helpers::getDbConfig();
-		$host        = $database['host'];
-		$port        = $database['port'];
-		$db          = $database['database'];
-		$username    = $database['username'];
-		$password    = $database['password'];
-		$version     = Helpers::getVersion();
-		$backupFile  = Helpers::getBackupDbName();
+		
+		
+		$database   = Helpers::getDbConfig();
+		$host       = $database['host'];
+		$port       = $database['port'];
+		$db         = $database['database'];
+		$username   = $database['username'];
+		$password   = $database['password'];
+		$version    = Helpers::getVersion();
+		$backupFile = Helpers::getBackupDbName();
 		$dumpTables = [];
-		foreach ($tables as $table){
+		foreach ($tables as $table) {
+			if (!$table) {
+				continue;
+			}
 			// SQL 查询语句
 			$sql = "SHOW TABLES LIKE '$table'";
 			// 执行查询
 			$isPassTable = Db::instance()->query($sql);
 			// 判断表是否存在
 			if ($isPassTable->num_rows > 0) {
-				 $dumpTables[]  = $table;
+				$dumpTables[] = $table;
 			}
 		}
-		if (!$dumpTables){
-			return [];
+		if (!$dumpTables) {
+			return true;
 		}
 		
-		// 构建mysqldump命令
 		$command =
 			"mysqldump  --socket=/tmp/mysql.sock  -u'{$username}' -p'{$password}' {$db} " . implode(' ', $dumpTables) . ">'{$backupFile}'";
 		
@@ -124,14 +126,16 @@ class Backup {
 	 */
 	protected static function rollbackFile($data = [])
 	{
-		$upgradeData  = Helpers::getUpgradeData();
+		$upgradeData = Helpers::getUpgradeData();
 		
-		$rootPath   = Helpers::getProjectPath();
-		$backupPath = Helpers::getBackupPath();
+		$rootPath    = Helpers::getProjectPath();
+		$backupPath  = Helpers::getBackupPath();
 		$backupFiles = FileSystem::getFiles($backupPath);
+		
 		// 找到新增的文件， 删除了
 		$upgradeFiles = isset($upgradeData['files']) ? $upgradeData['files'] : [];
 		foreach ($upgradeFiles as $file) {
+			
 			$path = $file['path'];
 			if (!$path) {
 				continue;
@@ -139,19 +143,18 @@ class Backup {
 			$backupFilePath = $backupPath . '/' . $path;
 			$localFilePath  = $rootPath . '/' . $path;
 			// 新增的文件则删除
-			if (!file_exists($backupFilePath) && $file['state'] === 'A'){
+			if (!file_exists($backupFilePath) && $file['state'] === 'A') {
 				FileSystem::delete($localFilePath);
 			}
 		}
 		// 恢复备份文件
-		foreach ($backupFiles as $file){
+		foreach ($backupFiles as $file) {
 			$path = $file['path'];
-			if (!$path)  continue;
-			
+			if (!$path) continue;
 			$backupFilePath = $backupPath . '/' . $path;
 			$localFilePath  = $rootPath . '/' . $path;
 			
-			if (file_exists($backupFilePath)){
+			if (file_exists($backupFilePath)) {
 				FileSystem::write($localFilePath, file_get_contents($backupFilePath));
 			}
 		}
@@ -166,10 +169,10 @@ class Backup {
 	protected static function rollbackDb($data = [])
 	{
 		
-		$upgradeData  = Helpers::getUpgradeData();
+		$upgradeData    = Helpers::getUpgradeData();
 		$upgradeVersion = $upgradeData['version'];
 		$rollbackDbPath = Helpers::getRollbackSqlPath($upgradeVersion);
-		$rollbackFile = $rollbackDbPath . '/v' . $upgradeVersion . '.sql';
+		$rollbackFile   = $rollbackDbPath . '/v' . $upgradeVersion . '.sql';
 		
 		$backupDbFile = Helpers::getBackupDbName();
 		
@@ -179,10 +182,11 @@ class Backup {
 			$backupDbFile,
 			$rollbackFile
 		];
-		
+		// var_dump($backupDbList);die;
+		$database = Db::instance();
 		foreach ($backupDbList as $sqlFile) {
 			if (file_exists($sqlFile)) {
-				$database     = Db::instance();
+				
 				$sqlScript = file_get_contents($sqlFile);
 				
 				// 使用正则表达式分割SQL脚本成单个语句
@@ -195,7 +199,7 @@ class Backup {
 					$stmt = trim($stmt); // 去除首尾空白字符
 					if (!empty($stmt)) { // 检查SQL语句是否为空
 						if ($database->query($stmt) === FALSE) {
-							Helpers::output('Error executing query: ' . $database->error() . ', sql:' . $stmt,'error');
+							Helpers::output('Error executing query: ' . $database->error() . ', sql:' . $stmt, 'error');
 							break; // 如果有错误，停止执行
 						}
 					}
@@ -205,9 +209,10 @@ class Backup {
 		// 创建了什么表， 创建了就删除
 		$sqlFilePath = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
 		$sqlTables   = Db::getCreateTableRecords($sqlFilePath);
-		 
-		if ($sqlTables){
-			foreach ($sqlTables as $tableName){
+		$sqlTables   = array_unique(array_filter($sqlTables));
+		
+		if ($sqlTables) {
+			foreach ($sqlTables as $tableName) {
 				$database->query("DROP TABLE {$tableName};");
 			}
 		}

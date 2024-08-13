@@ -100,7 +100,6 @@ class Request {
 	 */
 	private function output($response)
 	{
-		
 		$resp = json_decode($response, true);
 		if (!$resp) {
 			throw new AppVcsException("数据解析失败:".$response);

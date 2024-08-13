@@ -18,9 +18,13 @@ class Migrate {
 		
 		// 读取SQL文件
 		$sqlFile = Helpers::generatedDatabaseSqlFilename($upgradeVersion);
+		 
 		if (!file_exists($sqlFile)) {
 			return;
 		}
+		
+		$backupPath = Helpers::getDatabaseSqlPath($upgradeVersion);
+		is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		$sqlScript = file_get_contents($sqlFile);
 		
 		// 分割SQL脚本成单个语句
@@ -51,9 +55,11 @@ class Migrate {
 		
 		switch ($state) {
 			case 'D': // 删除
-				if (!file_exists($localFilePath)) {
-					unlink($localFilePath);
+				if (file_exists($localFilePath)) {
+					@unlink($localFilePath);
 				}
+				// 同时删除旧版本空目录
+				Helpers::rmDir(dirname($localFilePath));
 				break;
 			case 'A': // 新增
 			case 'M': // 修改

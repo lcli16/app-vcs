@@ -77,12 +77,12 @@ class Kernel {
 				$projectPath = $rootPath;
 			}
 			
-			$zipFile = $tempFilePath . '/' . $fileName;
+			$zipFile = Helpers::getZipPath() . '/' . $fileName;
 			
 			// 下载远程文件并保存到本地
 			$filePutRsult = @file_put_contents($zipFile, file_get_contents($url));
 			
-			$destinationDir = $tempFilePath;
+			$destinationDir = Helpers::getProjectPath();
 			if ($filePutRsult){
 				$zip = new ZipArchive();
 				if ($zip->open($zipFile) === TRUE) {
@@ -112,7 +112,8 @@ class Kernel {
 			}
 			
 			if (!$backupStatus){
-				throw new  AppVcsException('升级失败:备份文件失败');
+				Helpers::output('升级失败:备份文件失败','error');
+				return ;
 			}
 			// 2.备份数据库
 			$issetTables = isset($versionInfo['tables_files']);
@@ -120,11 +121,9 @@ class Kernel {
 			
 			$backupStatus = Backup::database($backup, $upgradeVersion);
 			if (!$backupStatus){
-				throw new  AppVcsException('升级失败:备份sql失败');
+				Helpers::output('升级失败:备份sql失败', 'error');
+				return ;
 			}
-			
-			
-			
 			
 			if (intval($publishAction) === 1){
 				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
@@ -133,6 +132,7 @@ class Kernel {
 			
 			// 3.开始执行升级
 			Helpers::output("正在获取更新文件", "debug");
+			
 			foreach ( $files as $file ) {
 				$state = $file[ 'state' ];
 				$path = $file[ 'path' ];
@@ -179,7 +179,6 @@ class Kernel {
 							
 							break;
 						case 'sql': // 数据库迁移
-							
 							Migrate::database($versionInfo['version']);
 							break;
 						case 'config': // 配置更新,
@@ -199,14 +198,16 @@ class Kernel {
 			$scripts = isset($versionInfo['script'])?$versionInfo['script']:[];
 			if ($scripts && is_array($scripts)){
 				foreach ($scripts as $cmd){
+					if (!$cmd) continue;
 					shell_exec($cmd);
 				}
 			}
-			 
+			// $d = 1/0;
 			// 提交事务
 			$transction->success($result);
 			return true;
 		} catch (\Error $e){
+			
 			self::throwError($result, $transction, $e);
 		} catch (\Exception $e){
 			
@@ -222,7 +223,7 @@ class Kernel {
 			'upgrade' => $result,
 		];
 		$transction->rollback($errorData, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
-		throw new AppVcsException($e->getMessage());
+		throw new AppVcsException($e);
 	}
 	
 	public static function rollback()

@@ -3,6 +3,7 @@
 namespace Lcli\AppVcs;
 
 use Lcli\AppVcs\Cli\Cli;
+use Module\AppVcs\Util\ToolsUtil;
 
 class Helpers {
 	public static $workPath = 'storage/appvcs';
@@ -40,6 +41,14 @@ class Helpers {
 		$rootPath = static::getRootPath();
 		$workPath = $rootPath . '/' . static::$workPath . '/' . self::getAppId();
 		return $workPath;
+	}
+	
+	public static function getZipPath()
+	{
+		$rootPath     = self::getWorkPath();
+		$tempFilePath = $rootPath . '/upgrade/';
+		is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
+		return $tempFilePath;
 	}
 	
 	public static function getTempFilePath($upgradeVersion)
@@ -96,7 +105,7 @@ class Helpers {
 	{
 		$rootPath   = self::getDatabaseSqlPath($version);
 		$backupPath = $rootPath . '/rollback';
-		is_dir($backupPath) or mkdir($backupPath, 0755, true);
+		
 		return $backupPath;
 	}
 	
@@ -104,20 +113,23 @@ class Helpers {
 	{
 		$rootPath   = self::getTempFilePath($upgradeVersion);
 		$backupPath = $rootPath . "/deploy/{$upgradeVersion}/database";
-		is_dir($backupPath) or mkdir($backupPath, 0755, true);
+		// is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		return $backupPath;
 	}
 	
 	public static function generatedDatabaseSqlFilename($version)
 	{
 		$databaseSqlDir = self::getDatabaseSqlPath($version);
-		return $databaseSqlDir . '/mysql.sql';
-		
+		$file = $databaseSqlDir . '/mysql.sql';
+		if (!file_exists($file)){
+			$file = Helpers::getProjectPath()."/deploy/{$version}/database/mysql.sql";
+		}
+		return $file;
 	}
 	
 	public static function getUpgradeDataFileName()
 	{
-		return self::getBackupPath() . '/upgrade_config.json';
+		return self::getUpgradeConfigPath() . '/upgrade_config.json';
 	}
 	
 	public static function getUpgradeData()
@@ -158,10 +170,18 @@ class Helpers {
 	
 	public static function getBackupDbName()
 	{
-		$backupPath     = self::getBackupPath();
+		$backupPath     = self::getUpgradeConfigPath();
 		$version        = self::getVersion();
 		$backupFileName = $version . '-backup.sql';
 		return $backupPath . '/' . $backupFileName;
+	}
+	
+	public static function getUpgradeConfigPath()
+	{
+		$rootPath   = self::getWorkPath();
+		$backupPath = $rootPath . '/config/' . self::getVersion();
+		is_dir($backupPath) or mkdir($backupPath, 0755, true);
+		return $backupPath;
 	}
 	
 	public static function getBackupPath()
@@ -278,9 +298,50 @@ class Helpers {
 	{
 		
 		static::output('读取配置:');
-		foreach (Helpers::config() as $configkey => $configValue){
-			static::output( $configkey.":".$configValue);
+		foreach (Helpers::config() as $configkey => $configValue) {
+			static::output($configkey . ":" . $configValue);
 		}
 		return true;
+	}
+	
+	public static function getProjectId()
+	{
+		$projectId = self::config('project_id');
+		if (!$projectId) {
+			$projectDir = self::getRootPath();
+			$projectId  = end(explode('/', dirname($projectDir)));
+		}
+		return $projectId;
+	}
+	
+	/**
+	 * 删除空文件夹
+	 * @param      $dir
+	 * @param bool $recursive
+	 * @return bool
+	 */
+	static function rmDir($dir, $recursive = true)
+	{
+		// 使用 scandir() 获取目录中的所有条目
+		$entries = scandir($dir);
+		
+		// 如果 scandir() 返回 false，则目录不存在或无法访问
+		if ($entries === false) {
+			return false;
+		}
+		
+		// 目录中除了 '.' 和 '..' 之外没有其他任何条目，则认为目录为空
+		$isEmpty = count($entries) === 2 && $entries[0] === '.' && $entries[1] === '..';
+		if ($isEmpty) {
+			if (is_dir($dir)) {
+				rmdir($dir);
+				if ($recursive) {
+					return Helpers::rmDir(dirname($dir), $recursive);
+				}
+				return true;
+			}
+			return true;
+		}
+		return false;
 	}
 }

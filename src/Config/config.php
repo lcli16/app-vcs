@@ -1,5 +1,7 @@
 <?php
 return [
+	// 项目标识(🉑非必填)
+	'project_id'     => '',
 	// 服务地址(🔅必填)
 	'server_url'     => 'https://www.baidu.com',
 	// 客户端ID(🉑非必填)
@@ -11,9 +13,9 @@ return [
 	// 备份目录 (🉑非必填)
 	'backup_path'    => '',
 	// 安装sdk的服务端目录 (🔅必填)
-	'root_path'      => dirname(__DIR__, 2),
+	'root_path'      => dirname(__DIR__),
 	// 项目目录 需要更新的代码目录 (🔅必填)
-	'project_path'    => dirname(__DIR__, 2),
+	'project_path'   => dirname(__DIR__),
 	// 数据库配置(🉑非必填)
 	'database'       => [
 		'driver'   => 'mysql',
