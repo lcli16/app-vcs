@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs  update">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Config/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Config/config.php" afterDir="false" />
-    </list>
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs  update" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -98,7 +93,7 @@
       <workItem from="1723080873672" duration="4865000" />
       <workItem from="1723185470951" duration="7259000" />
       <workItem from="1723373322644" duration="2350000" />
-      <workItem from="1723533163788" duration="546000" />
+      <workItem from="1723533163788" duration="576000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -404,7 +399,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723530262393</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="app-vcs  update">
+      <option name="closed" value="true" />
+      <created>1723533723433</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1723533723433</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

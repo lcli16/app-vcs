@@ -89,6 +89,7 @@ class Request {
 	private function post($url, $data)
 	{
 		$response = $this->http->post($url, $data);
+		
 		return $this->output($response);
 	}
 	

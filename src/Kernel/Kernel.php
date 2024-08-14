@@ -32,6 +32,7 @@ class Kernel {
 	 */
 	public static function upgrade($appId, $version = null)
 	{
+	    ini_set('memory_limit', '-1');
 		Helpers::output('开始执行升级程序:应用ID:'.$appId.', 版本号:'.$version);
 		// 开始事务
 		$transction = new Transaction();
@@ -119,8 +120,14 @@ class Kernel {
 			}
 			
 			Helpers::output('正在下载更新包补丁'.$url);
-			// 下载远程文件并保存到本地
-			$filePutRsult = @file_put_contents($zipFile, file_get_contents($url));
+			if(file_exists($zipFile)){
+			    $filePutRsult = true;
+			}else{
+			    	// 下载远程文件并保存到本地
+			    $filePutRsult = shell_exec("curl -o $zipFile {$url}");
+			}
+		
+// 			@file_put_contents($zipFile, file_get_contents($url));
 			if ($filePutRsult){
 				Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir);
 				$zip = new ZipArchive();

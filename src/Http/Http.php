@@ -12,7 +12,7 @@ class Http {
 	 * @param int    $timeout 超时时间（秒）
 	 * @return array 包含响应状态码和响应体的数组
 	 */
-	public function post($url, $data = [], $headers = [], $timeout = 5)
+	public function post($url, $data = [], $headers = [], $timeout = 600)
 	{
 		$ch = curl_init();
 		
@@ -27,8 +27,10 @@ class Http {
 		// 执行请求
 		$response = curl_exec($ch);
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		var_dump(curl_error($ch));
 		curl_close($ch);
 		
+		var_dump($response);
 		return $response;
 	}
 	
