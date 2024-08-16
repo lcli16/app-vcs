@@ -32,6 +32,8 @@ class Kernel {
 	 */
 	public static function upgrade($appId, $version = null)
 	{
+		ignore_user_abort(true);
+		set_time_limit(0);
 	    ini_set('memory_limit', '-1');
 		Helpers::output('开始执行升级程序:应用ID:'.$appId.', 版本号:'.$version);
 		// 开始事务
@@ -43,6 +45,7 @@ class Kernel {
 		if (!$result){
 			throw new  AppVcsException('获取版本信息失败');
 		}
+		
 		Helpers::output('正在获取更新应用信息'.$appId.', 版本号:'.$version);
 		Helpers::output(json_encode($result,JSON_UNESCAPED_UNICODE));
 		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
@@ -119,30 +122,34 @@ class Kernel {
 				return ;
 			}
 			
-			Helpers::output('正在下载更新包补丁'.$url);
-			if(file_exists($zipFile)){
-			    $filePutRsult = true;
-			}else{
-			    	// 下载远程文件并保存到本地
-			    $filePutRsult = shell_exec("curl -o $zipFile {$url}");
-			}
-		
-// 			@file_put_contents($zipFile, file_get_contents($url));
-			if ($filePutRsult){
-				Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir);
-				$zip = new ZipArchive();
-				if ($zip->open($zipFile) === TRUE) {
-					$zip->extractTo($destinationDir);
+			if ($url){
+				Helpers::output('正在下载更新包补丁'.$url);
+				if(file_exists($zipFile)){
+					$filePutRsult = true;
+				}else{
+					// 下载远程文件并保存到本地
+					$filePutRsult = shell_exec("curl -o $zipFile {$url}");
 				}
-				$zip->close();
+				// 			@file_put_contents($zipFile, file_get_contents($url));
+				if ($filePutRsult){
+					Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir);
+					$zip = new ZipArchive();
+					$zipOpen = $zip->open($zipFile);
+					if ($zipOpen === TRUE) {
+						$zip->extractTo($destinationDir);
+						$zip->close();
+						Helpers::output("解压补丁包【{$zipFile}】完成，解压至:{$destinationDir}",'success');
+					}else{
+						Helpers::output("解压补丁包【{$zipFile}】失败：:{$zipOpen}",'error');
+					}
+				}
+				
+				if (intval($publishAction) === 1){
+					Helpers::output('补丁包类型：全量发布'.$url);
+					// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
+					FileSystem::clearDir($projectPath);
+				}
 			}
-			
-			if (intval($publishAction) === 1){
-				Helpers::output('补丁包类型：全量发布'.$url);
-				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
-				FileSystem::clearDir($projectPath);
-			}
-			
 			// 3.开始执行升级
 			Helpers::output("正在获取更新文件", "debug");
 			
@@ -192,17 +199,16 @@ class Kernel {
 					
 					Helpers::output('正在安装升级文件,类型：'.$type.'，安装至：'.$localFilePath.', 升级文件：'.$upgradeFilePath);
 					switch ($type) {
-						case 'file':
-							Migrate::file($state, $localFilePath, $upgradeFilePath);
-							
-							break;
+						// case 'file':
+						// 	Migrate::file($state, $localFilePath, $upgradeFilePath);
+						//
+						// 	break;
 						case 'sql': // 数据库迁移
 							Migrate::database($versionInfo['version']);
 							break;
 						case 'config': // 配置更新,
 						default: // 业务数据更新
-							
-							Migrate::file($state, $localFilePath, $upgradeFilePath);
+							// Migrate::file($state, $localFilePath, $upgradeFilePath);
 							break;
 					}
 				}

@@ -14,8 +14,7 @@ class Http {
 	 */
 	public function post($url, $data = [], $headers = [], $timeout = 600)
 	{
-		$ch = curl_init();
-		
+		$ch = curl_init(); 
 		// 设置cURL选项
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POST, true);
@@ -27,10 +26,10 @@ class Http {
 		// 执行请求
 		$response = curl_exec($ch);
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		var_dump(curl_error($ch));
+		// var_dump(curl_error($ch));
 		curl_close($ch);
 		
-		var_dump($response);
+		// var_dump($response);
 		return $response;
 	}
 	

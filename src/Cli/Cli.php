@@ -74,6 +74,7 @@ BANNER;
 	{
 		
 		$this->config = Helpers::config();
+		
 		$this->setConfig('client_id', Helpers::getServerIp());
 		
 		$cmd  = $options->getCmd();
@@ -239,13 +240,14 @@ BANNER;
 		$config = $this->config;
 		is_dir($config['root_path'] . '/' . Helpers::$workPath) or mkdir($config['root_path'] . Helpers::$workPath, 0775, true);
 		$data = [
-			'project_id' => $this->config['project_id'],
-			'client_id'  => $serverIp,
-			'app_id'     => $appId,
-			'title'      => $serverIp,
-			'config'     => $config
-		];
-		
+			'project_id'    => $this->config['project_id'],
+			'client_id'     => $serverIp,
+			'app_id'        => $appId,
+			'title'         => $serverIp,
+			'client_secret' => $this->config['client_secret'],
+			'config'        => $config,
+			'client_connect_url'        => isset($this->config['client_connect_url'])?$this->config['client_connect_url']:''
+		]; 
 		// 注册客户端
 		$result  = \Lcli\AppVcs\Kernel\Request::instance()->register($data);
 		$command = $result['command'];
@@ -257,18 +259,25 @@ BANNER;
 			foreach ($command as $console) {
 				$date  = date('Y-m-d H:i:s');
 				$state = isset($console['state']) ? $console['state'] : 'debug';
+				
 				Helpers::output("[$date] " . $console['describe'], $state);
 				$cmd = isset($console['command']) ? $console['command'] : '';
+				
+				Helpers::output("[$date] 执行脚本命令：" . $cmd, 'debug');
 				if ($cmd) {
+					
 					$output = shell_exec($cmd);
-					$this->info("[$date] 执行脚本命令：" . $console['command']);
-					$date = date('Y-m-d H:i:s');
-					$this->success("[$date] " . trim($output) ? $output : '执行成功');
+					if ($output) {
+						
+						$date = date('Y-m-d H:i:s');
+						$this->success("[$date] " . trim($output) ? $output : '执行成功');
+					}
 				}
 			}
 		}
 		$date = date('Y-m-d H:i:s');
-		exit("[$date] 注册成功!\n");
+		$this->success("[$date] 注册成功!\n");
+		exit();
 	}
 	
 	

@@ -208,7 +208,7 @@ class Helpers {
 	
 	public static function getVersion()
 	{
-		if (static::$config['version']) {
+		if (isset(static::$config['version']) && static::$config['version']) {
 			return static::$config['version'];
 		}
 		$versionFile = self::getVersionPath();
@@ -299,7 +299,7 @@ class Helpers {
 		
 		static::output('读取配置:');
 		foreach (Helpers::config() as $configkey => $configValue) {
-			static::output($configkey . ":" . $configValue);
+			static::output($configkey . ":" . (is_array($configValue)?json_encode($configValue,JSON_UNESCAPED_UNICODE):$configValue));
 		}
 		return true;
 	}
@@ -314,6 +314,36 @@ class Helpers {
 		return $projectId;
 	}
 	
+	/**
+	 * @Util 删除目录
+	 *
+	 * @param $dir        string 目录
+	 * @param $removeSelf bool 是否删除本身
+	 * @return bool
+	 */
+	public static function rm($dir, $removeSelf = true)
+	{
+		if (is_dir($dir)) {
+			$dh = opendir($dir);
+			while (($file = readdir($dh)) !== false) {
+				if ($file != '.' && $file != '..') {
+					$fullPath = rtrim($dir, '/\\') . '/' . $file;
+					if (is_dir($fullPath)) {
+						self::rm($fullPath, true);
+					} else {
+						@unlink($fullPath);
+					}
+				}
+			}
+			closedir($dh);
+			if ($removeSelf) {
+				@rmdir($dir);
+			}
+		} else {
+			@unlink($dir);
+		}
+		return true;
+	}
 	/**
 	 * 删除空文件夹
 	 * @param      $dir

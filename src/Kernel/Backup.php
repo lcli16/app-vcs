@@ -58,8 +58,8 @@ class Backup {
 	 */
 	public static function database($tables, $upgradeVersion)
 	{
-		Helpers::output('正在备份数据库中...:'.$path);
-		Helpers::output(json_decode($tables?(is_array($tables)?json_encode($tables,JSON_UNESCAPED_UNICODE):$tables):[]));
+		Helpers::output('正在备份数据库中');
+		Helpers::output($tables?(is_array($tables)?json_encode($tables,JSON_UNESCAPED_UNICODE):$tables):'null');
 		if (!$tables) {
 			return true;
 		}

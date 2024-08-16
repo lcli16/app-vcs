@@ -29,6 +29,20 @@ class Transaction {
 		$state = 'success';
 		$result = Request::instance()->callback([ 'state' => $state, 'appId' => $appId, 'pre_version'=>$preVersion, 'version' => $version, 'content' => $data ]);
 		Helpers::output('信息同步完成！安装结束！', 'success');
+		// 删除迁移文件
+		$projectPath = Helpers::getProjectPath();
+		$deployPath = $projectPath.'/deploy';
+		$gitPath = $projectPath.'/.git';
+		if (is_dir($deployPath)){
+			Helpers::rm($deployPath, true);
+			
+		}
+		if (is_dir($gitPath)){
+			Helpers::rm($gitPath, true);
+		}
+		if (is_file($projectPath.'/.gitignore')){
+			@unlink($projectPath.'/.gitignore');
+		}
 		$this->status = 2;
 	}
 	

@@ -23,7 +23,7 @@ class Db {
 	
 	private function __clone() {}
 	
-	private function __wakeup() {}
+	 
 	
 	/***
 	 * 获取SQL文件里的表名
