@@ -133,7 +133,7 @@ class Backup {
 	public static function rollback($data = null)
 	{
 		Helpers::output('正在回滚中');
-		Helpers::output(is_array($output)?json_encode($output,JSON_UNESCAPED_UNICODE):$output);
+		Helpers::output(is_array($data)?json_encode($data,JSON_UNESCAPED_UNICODE):$data);
 		// 获取备份文件
 		static::rollbackFile($data);
 		static::rollbackDb($data);
@@ -201,7 +201,10 @@ class Backup {
 		Helpers::output('正在回滚数据库','debug');
 		$upgradeData    = Helpers::getUpgradeData();
 		Helpers::output(is_array($upgradeData)?json_encode($upgradeData,JSON_UNESCAPED_UNICODE):$upgradeData,'debug');
-		$upgradeVersion = $upgradeData['version'];
+		$upgradeVersion = $upgradeData['version']??'';
+		if (!$upgradeVersion){
+			return false;
+		}
 		$rollbackDbPath = Helpers::getRollbackSqlPath($upgradeVersion);
 		$rollbackFile   = $rollbackDbPath . '/v' . $upgradeVersion . '.sql';
 		Helpers::output('获取回滚数据库文件'.$rollbackFile,'debug');

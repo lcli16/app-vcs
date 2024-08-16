@@ -19,7 +19,10 @@ class Kernel {
 	 */
 	public static function check($appId, $version = null)
 	{
-		return \Lcli\AppVcs\Kernel\Request::instance()->check([ 'appId' => $appId, 'version' => $version ]);
+		return \Lcli\AppVcs\Kernel\Request::instance()->check([
+			                                                      'appId'   => $appId,
+			                                                      'version' => $version
+		                                                      ]);
 	}
 	
 	/**
@@ -34,32 +37,39 @@ class Kernel {
 	{
 		ignore_user_abort(true);
 		set_time_limit(0);
-	    ini_set('memory_limit', '-1');
-		Helpers::output('开始执行升级程序:应用ID:'.$appId.', 版本号:'.$version);
+		ini_set('memory_limit', '-1');
+		Helpers::output('开始执行升级程序:应用ID:' . $appId . ', 版本号:' . $version);
 		// 开始事务
 		$transction = new Transaction();
 		
-		$transction->start(['appId' => $appId, 'version' => $version]);
+		$transction->start([
+			                   'appId'   => $appId,
+			                   'version' => $version
+		                   ]);
 		
-		$result = \Lcli\AppVcs\Kernel\Request::instance()->upgrade([ 'appId' => $appId, 'version' => $version ]);
-		if (!$result){
+		$result =
+			\Lcli\AppVcs\Kernel\Request::instance()->upgrade([
+				                                                 'appId'   => $appId,
+				                                                 'version' => $version
+			                                                 ]);
+		if (!$result) {
 			throw new  AppVcsException('获取版本信息失败');
 		}
 		
-		Helpers::output('正在获取更新应用信息'.$appId.', 版本号:'.$version);
-		Helpers::output(json_encode($result,JSON_UNESCAPED_UNICODE));
-		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
+		Helpers::output('正在获取更新应用信息' . $appId . ', 版本号:' . $version);
+		Helpers::output(json_encode($result, JSON_UNESCAPED_UNICODE));
+		$versionInfo = isset($result['versionInfo']) ? $result['versionInfo'] : [];
 		// 获取发布操作类型:0=按需发布,1=全量发布
-		$publishAction = isset($versionInfo['publish_action'])?$versionInfo['publish_action']:0;
-		$upgradeVersion =  $versionInfo['version'];
+		$publishAction  = isset($versionInfo['publish_action']) ? $versionInfo['publish_action'] : 0;
+		$upgradeVersion = $versionInfo['version'];
 		// 保存更新数据
 		Helpers::setUpgradeData($result);
 		
 		try {
 			// 操作更新
-			$files = isset($result['files']) ?$result[ 'files' ]: [];
-			$url = $result[ 'url' ];
-			$fileName = isset($result[ 'fileName' ])?$result[ 'fileName' ]:'app-vcs-upgrade.zip';
+			$files        = isset($result['files']) ? $result['files'] : [];
+			$url          = $result['url'];
+			$fileName     = isset($result['fileName']) ? $result['fileName'] : 'app-vcs-upgrade.zip';
 			$tempFilePath = Helpers::getTempFilePath($upgradeVersion);
 			if (!$tempFilePath) {
 				throw new  AppVcsException('请配置根目录');
@@ -70,16 +80,16 @@ class Kernel {
 			if (!$rootPath) {
 				throw new  AppVcsException('请配置根目录');
 			}
-		
+			
 			$checkDir = Helpers::checkPath($rootPath);
 			
-			if (!$checkDir){
+			if (!$checkDir) {
 				return false;
 			}
 			is_dir($rootPath) or mkdir($rootPath, 0755, true);
 			// 项目目录
-			$projectPath  = Helpers::getProjectPath();
-			if (!$projectPath){
+			$projectPath = Helpers::getProjectPath();
+			if (!$projectPath) {
 				$projectPath = $rootPath;
 			}
 			
@@ -90,73 +100,75 @@ class Kernel {
 			
 			// 1.备份文件
 			// 如果是全量发布， 那么备份全部文件
-			if (intval($publishAction) === 1){
+			if (intval($publishAction) === 1) {
 				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
 				$projectFiles = FileSystem::getAllFiles($projectPath, false);
-				$_files = [];
+				$_files       = [];
 				
 				foreach ($projectFiles as $fileFullPath) {
-					$path = str_replace($projectPath , '', $fileFullPath);
+					$path     = str_replace($projectPath, '', $fileFullPath);
 					$_files[] = [
-						'path' => $path,
+						'path'     => $path,
 						'fullPath' => $fileFullPath
 					];
 				}
 				$backupStatus = Backup::file($_files, $result);
 				
-			}else{
+			} else {
 				$backupStatus = Backup::file($files, $result);
 			}
 			
-			if (!$backupStatus){
-				Helpers::output('升级失败:备份文件失败','error');
-				return ;
+			if (!$backupStatus) {
+				Helpers::output('升级失败:备份文件失败', 'error');
+				return;
 			}
 			// 2.备份数据库
 			$issetTables = isset($versionInfo['tables_files']);
-			$backup = $issetTables?$versionInfo['tables_files']:[];
+			$backup      = $issetTables ? $versionInfo['tables_files'] : [];
 			
 			$backupStatus = Backup::database($backup, $upgradeVersion);
-			if (!$backupStatus){
+			if (!$backupStatus) {
 				Helpers::output('升级失败:备份sql失败', 'error');
-				return ;
+				return;
 			}
 			
-			if ($url){
-				Helpers::output('正在下载更新包补丁'.$url);
-				if(file_exists($zipFile)){
+			if ($url) {
+				Helpers::output('正在下载更新包补丁' . $url);
+				if (file_exists($zipFile)) {
 					$filePutRsult = true;
-				}else{
+				} else {
 					// 下载远程文件并保存到本地
-					$filePutRsult = shell_exec("curl -o $zipFile {$url}");
+					$filePutRsult = true;
+					shell_exec("curl -o $zipFile {$url}");
+					sleep(1);
 				}
 				// 			@file_put_contents($zipFile, file_get_contents($url));
-				if ($filePutRsult){
-					Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir);
-					$zip = new ZipArchive();
+				if ($filePutRsult) {
+					Helpers::output('补丁包下载完成：' . $zipFile . ',正在解压文件至：' . $destinationDir);
+					$zip     = new ZipArchive();
 					$zipOpen = $zip->open($zipFile);
 					if ($zipOpen === TRUE) {
 						$zip->extractTo($destinationDir);
 						$zip->close();
-						Helpers::output("解压补丁包【{$zipFile}】完成，解压至:{$destinationDir}",'success');
-					}else{
-						Helpers::output("解压补丁包【{$zipFile}】失败：:{$zipOpen}",'error');
+						Helpers::output("解压补丁包【{$zipFile}】完成，解压至:{$destinationDir}", 'success');
+					} else {
+						Helpers::output("解压补丁包【{$zipFile}】失败：:{$zipOpen}", 'error');
 					}
 				}
 				
-				if (intval($publishAction) === 1){
-					Helpers::output('补丁包类型：全量发布'.$url);
+				if (intval($publishAction) === 1) {
+					Helpers::output('补丁包类型：全量发布' . $url);
 					// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
 					FileSystem::clearDir($projectPath);
 				}
 			}
 			// 3.开始执行升级
-			Helpers::output("正在获取更新文件", "debug");
+			Helpers::output('正在获取更新文件', 'debug');
 			
-			foreach ( $files as $file ) {
-				$state = $file[ 'state' ];
-				$path = $file[ 'path' ];
-				$type = $file[ 'type' ];
+			foreach ($files as $file) {
+				$state = $file['state'];
+				$path  = $file['path'];
+				$type  = $file['type'];
 				Helpers::output("正在迁移文件：{$path}-{$state}-{$type}", 'debug');
 				if (!$path) {
 					continue;
@@ -164,40 +176,40 @@ class Kernel {
 				
 				// 获取更新文件
 				$upgradeFilePath = $destinationDir . '/' . $path;
-				$localFilePath = $projectPath . '/' . $path;
+				$localFilePath   = $projectPath . '/' . $path;
 				
 				// 安全文件只运行不下载
 				$safeFileOrDirs = [Helpers::getDatabaseSqlPath($upgradeVersion)];
-				if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']){
+				if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']) {
 					$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
 				}
-				Helpers::output("安全文件", 'debug');
+				Helpers::output('安全文件', 'debug');
 				Helpers::output(json_encode($safeFileOrDirs, JSON_UNESCAPED_UNICODE), 'debug');
 				// 过滤文件
-				$filterFiles = isset($versionInfo['filter_files'])?$versionInfo['filter_files']:[];
-				if (!$filterFiles){
+				$filterFiles = isset($versionInfo['filter_files']) ? $versionInfo['filter_files'] : [];
+				if (!$filterFiles) {
 					$filterFiles = [];
 				}
 				Helpers::output('过滤文件', 'debug');
 				Helpers::output(json_encode($filterFiles, JSON_UNESCAPED_UNICODE), 'debug');
 				// 存在指定过滤文件， 那么直接过滤
-				if (in_array($path, $filterFiles)   ){
-					Helpers::output('已过滤：'.$path.'，文件', 'warning');
+				if (in_array($path, $filterFiles)) {
+					Helpers::output('已过滤：' . $path . '，文件', 'warning');
 					continue;
 				}
-			 
+				
 				// 如果包含， 也过滤
-				foreach ($filterFiles as $filterFileItem){
-					$isContains =  strpos($path, $filterFileItem)!==false;
-					if (!$isContains){
-						Helpers::output('已过滤：'.$path.'，文件(包含)', 'warning');
+				foreach ($filterFiles as $filterFileItem) {
+					$isContains = strpos($path, $filterFileItem) !== false;
+					if (!$isContains) {
+						Helpers::output('已过滤：' . $path . '，文件(包含)', 'warning');
 						continue 2;
 					}
 				}
-				 
-				if (!in_array($path, $safeFileOrDirs)){
+				
+				if (!in_array($path, $safeFileOrDirs)) {
 					
-					Helpers::output('正在安装升级文件,类型：'.$type.'，安装至：'.$localFilePath.', 升级文件：'.$upgradeFilePath);
+					Helpers::output('正在安装升级文件,类型：' . $type . '，安装至：' . $localFilePath . ', 升级文件：' . $upgradeFilePath);
 					switch ($type) {
 						// case 'file':
 						// 	Migrate::file($state, $localFilePath, $upgradeFilePath);
@@ -219,11 +231,11 @@ class Kernel {
 			// $d = 1/0;
 			
 			// 如果有脚本指令, 运行脚本
-			$scripts = isset($versionInfo['script'])?$versionInfo['script']:[];
-			if ($scripts && is_array($scripts)){
-				foreach ($scripts as $cmd){
+			$scripts = isset($versionInfo['script']) ? $versionInfo['script'] : [];
+			if ($scripts && is_array($scripts)) {
+				foreach ($scripts as $cmd) {
 					if (!$cmd) continue;
-					Helpers::output('正在执行脚本:'.$cmd);
+					Helpers::output('正在执行脚本:' . $cmd);
 					$output = shell_exec($cmd);
 					Helpers::output($output);
 				}
@@ -232,10 +244,10 @@ class Kernel {
 			// 提交事务
 			$transction->success($result);
 			return true;
-		} catch (\Error $e){
+		} catch (\Error $e) {
 			
 			self::throwError($result, $transction, $e);
-		} catch (\Exception $e){
+		} catch (\Exception $e) {
 			
 			
 			// 回滚程序
@@ -245,19 +257,23 @@ class Kernel {
 	
 	public static function throwError($result, $transction, $e)
 	{
-		Helpers::output('更新失败:'.$e->getMessage(),'error');
+		Helpers::output('更新失败:' . $e->getMessage(), 'error');
 		$errorData = [
 			'upgrade' => $result,
 		];
-		$transction->rollback($errorData, ['message' => $e->getMessage(), 'trace' => $e->getTrace(),'file' => $e->getFile(), 'line' => $e->getLine() ]);
+		$transction->rollback($errorData, [
+			'message' => $e->getMessage(),
+			'trace'   => $e->getTrace(),
+			'file'    => $e->getFile(),
+			'line'    => $e->getLine()
+		]);
 		throw new AppVcsException($e);
 	}
 	
 	public static function rollback()
 	{
-		  Backup::rollback();
+		Backup::rollback();
 	}
-	
 	
 	
 	/**
@@ -268,8 +284,6 @@ class Kernel {
 	{
 		return Helpers::getVersion();
 	}
-	
-	
 	
 	
 }
