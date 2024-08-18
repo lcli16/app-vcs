@@ -250,6 +250,9 @@ class Kernel {
 	
 	public static function throwError($result, $transction, $e)
 	{
+		$errorData = [
+			'upgrade' => $result,
+		];
 		$transction->rollback($errorData, [
 			'message' => $e->getMessage(),
 			'trace'   => $e->getTrace(),
@@ -260,9 +263,7 @@ class Kernel {
 		Helpers::output('运行错误：' . $error, 'error');
 		Helpers::output($e->getTraceAsString(), 'error');
 		
-		$errorData = [
-			'upgrade' => $result,
-		];
+		
 		return;
 	}
 	

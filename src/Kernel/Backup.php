@@ -29,7 +29,7 @@ class Backup {
 		$version    = Helpers::getVersion();
 		foreach ($upgradeFiles as $file) {
 			$path = self::fixPaht($file['path']);
-			Helpers::output('正在备份文件:'.$path);
+			// Helpers::output('正在备份文件:'.$path);
 			if (!$path) {
 				Helpers::output('文件路径为空，自动过滤:'.$path,'warning');
 				continue;
@@ -42,7 +42,7 @@ class Backup {
 			$localFilePath = $rootPath . '/' . $path;
 			if (file_exists($localFilePath)) {
 				FileSystem::writeByPath($filePath, $localFilePath);
-				Helpers::output('文件备份完成:'.$path,'success');
+				// Helpers::output('文件备份完成:'.$path,'success');
 			}else{
 				Helpers::output('文件不存在:'.$path,'error');
 			}
@@ -156,19 +156,19 @@ class Backup {
 		$upgradeFiles = isset($upgradeData['files']) ? $upgradeData['files'] : [];
 		foreach ($upgradeFiles as $file) {
 			$path = $file['path'];
-			Helpers::output('获取更新包文件:'.$path);
+			// Helpers::output('获取更新包文件:'.$path);
 			if (!$path) {
 				Helpers::output('更新包文件为空:'.$path,'warning');
 				continue;
 			}
 			$backupFilePath = $backupPath . '/' . $path;
 			$localFilePath  = $rootPath . '/' . $path;
-			Helpers::output('读取备份文件:'.$backupFilePath,'debug');
-			Helpers::output('读取本地文件:'.$localFilePath,'debug');
+			// Helpers::output('读取备份文件:'.$backupFilePath,'debug');
+			// Helpers::output('读取本地文件:'.$localFilePath,'debug');
 			// 新增的文件则删除
 			if (!file_exists($backupFilePath) && $file['state'] === 'A') {
 				FileSystem::delete($localFilePath);
-				Helpers::output('移除更新包新增文件完成:'.$localFilePath,'success');
+				// Helpers::output('移除更新包新增文件完成:'.$localFilePath,'success');
 			}else{
 				Helpers::output('文件不存在或不是新增文件:'.$backupFilePath,'warning');
 			}
@@ -201,7 +201,7 @@ class Backup {
 		Helpers::output('正在回滚数据库','debug');
 		$upgradeData    = Helpers::getUpgradeData();
 		Helpers::output(is_array($upgradeData)?json_encode($upgradeData,JSON_UNESCAPED_UNICODE):$upgradeData,'debug');
-		$upgradeVersion = $upgradeData['version']??'';
+		$upgradeVersion = isset($upgradeData['version'])?$upgradeData['version']:'';
 		if (!$upgradeVersion){
 			return false;
 		}
@@ -222,7 +222,6 @@ class Backup {
 			Helpers::output('读取数据库文件：'.$sqlFile,'debug');
 			if (file_exists($sqlFile)) {
 				
-				
 				// 打开文件
 				$file = fopen($sqlFile, 'r');
 				// 用于存储 SQL 语句
@@ -231,21 +230,29 @@ class Backup {
 					$line = fgets($file);
 					
 					// 忽略注释行
-					if (preg_match('/^\s*(--|\/\*)/', $line)) {
+					if (Helpers::findSqlComments($line)) {
 						continue;
 					}
 					// 添加当前行到 SQL 语句
 					$sql .= $line;
-					Helpers::output('执行回滚数据库:' . $sql);
 					// 如果遇到分号，则执行 SQL 语句
 					if (substr(trim($line), -1, 1) == ';') {
-						if (!$database->query($sql)) {
-							Helpers::output('Error executing SQL statement: ' . $sql, 'error');
-							Helpers::output('执行回滚失败: ' . $database->error(), 'error');
-							
-						} else{
-							Helpers::output('执行回滚数据库成功:'.$sql,'success');
+						try {
+							if (!$database->query($sql)) {
+								Helpers::output( 'Error executing SQL statement: ' . $sql, 'error');
+								Helpers::output( 'MySQL Error: ' . $database->error(), 'error');
+								
+							}else{
+								Helpers::output( '执行回滚数据库失败：'.$sql, 'success');
+							}
+						} catch (\Exception $exception){
+							Helpers::output( '执行回滚数据库失败：Error executing SQL statement: ' . $sql, 'error');
+							Helpers::output( '执行回滚数据库失败：MySQL Error: ' . $database->error(), 'error');
+						}catch (\Error $exception){
+							Helpers::output( '执行回滚数据库失败：Error executing SQL statement: ' . $sql, 'error');
+							Helpers::output( '执行回滚数据库失败：MySQL Error: ' . $database->error(), 'error');
 						}
+						
 						$sql = ''; // 清空 SQL 语句
 					}
 				}

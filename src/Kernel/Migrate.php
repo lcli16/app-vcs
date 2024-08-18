@@ -34,21 +34,30 @@ class Migrate {
 		while (!feof($file)) {
 			$line = fgets($file);
 			// 忽略注释行
-			if (preg_match('/^\s*(--|\/\*)/', $line)) {
+			if (Helpers::findSqlComments($line)) {
 				continue;
 			}
 			// 添加当前行到 SQL 语句
 			$sql .= $line;
 			// 如果遇到分号，则执行 SQL 语句
-			Helpers::output("执行SQL语句:".$sql);
+			// Helpers::output("执行SQL语句:".$sql);
 			if (substr(trim($line), -1, 1) == ';') {
-				if (!$conn->query($sql)) {
+				try {
+					if (!$conn->query($sql)) {
+						Helpers::output( 'Error executing SQL statement: ' . $sql, 'error');
+						Helpers::output( 'MySQL Error: ' . $conn->error(), 'error');
+						
+					}else{
+						Helpers::output( '数据库迁移语句执行成功'.$sql, 'success');
+					}
+				} catch (\Exception $exception){
 					Helpers::output( 'Error executing SQL statement: ' . $sql, 'error');
-					Helpers::output( 'MySQL Error: ' . $conn->error, 'error');
-					
-				}else{
-					Helpers::output( '数据库迁移语句执行成功'.$sql, 'success');
+					Helpers::output( 'MySQL Error: ' . $conn->error(), 'error');
+				}catch (\Error $exception){
+					Helpers::output( 'Error executing SQL statement: ' . $sql, 'error');
+					Helpers::output( 'MySQL Error: ' . $conn->error(), 'error');
 				}
+				
 				$sql = ''; // 清空 SQL 语句
 			}
 		}

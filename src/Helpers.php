@@ -287,6 +287,11 @@ class Helpers {
 		return $json_response['ip'];
 	}
 	
+	static function findSqlComments($sqlText) {
+		preg_match_all('/--.*$|#.*$|^\/\*.*?\*\//s', $sqlText, $matches);
+		
+		return( $matches[0])?true:false;
+	}
 	public static function output($msg, $type = 'info', $progress=null)
 	{
 		if (!is_null($progress)){
@@ -333,7 +338,8 @@ class Helpers {
 		$projectId = self::config('project_id');
 		if (!$projectId) {
 			$projectDir = self::getRootPath();
-			$projectId  = end(explode('/', dirname($projectDir)));
+			$d = explode('/', dirname($projectDir));
+			$projectId  = end($d);
 		}
 		return $projectId;
 	}
@@ -405,7 +411,7 @@ class Helpers {
 		return $tempFilePath . '/progress.txt';
 	}
 	
-	public static function getProgress()
+	public static function getProgress($upgradeVersion=null)
 	{
 		$progressFile = self::getProgressFile($upgradeVersion);
 		return file_get_contents($progressFile);
@@ -424,7 +430,7 @@ class Helpers {
 		$fileName = '';
 		$rootPath = self::getRootPath();
 		$appId = self::getAppId();
-		$id = self::$config['id']??'';
+		$id = isset(self::$config['id'])?self::$config['id']:'';
 		
 		if ($rootPath && $appId && $id){
 			$name = md5($appId.'-'.$id);
