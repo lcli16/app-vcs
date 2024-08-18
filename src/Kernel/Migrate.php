@@ -26,23 +26,33 @@ class Migrate {
 		
 		$backupPath = Helpers::getDatabaseSqlPath($upgradeVersion);
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
-		$sqlScript = file_get_contents($sqlFile);
-		Helpers::output( $sqlScript);
-		// 分割SQL脚本成单个语句
-		$statements = explode(";\n", $sqlScript);
-		
-		// 执行每个SQL语句
-		foreach ($statements as $statement) {
-			Helpers::output( '正在执行数据库迁移语句'.$statement);
-			if (trim($statement) != '') { // 忽略空语句
-				$conn = Db::instance();
-				if (!$conn->query($statement)) {
-					throw new  AppVcsException('数据库更新错误:' . $conn->error());
+		$conn = Db::instance();
+		// 打开文件
+		$file = fopen($sqlFile, 'r');
+		// 用于存储 SQL 语句
+		$sql = '';
+		while (!feof($file)) {
+			$line = fgets($file);
+			// 忽略注释行
+			if (preg_match('/^\s*(--|\/\*)/', $line)) {
+				continue;
+			}
+			// 添加当前行到 SQL 语句
+			$sql .= $line;
+			// 如果遇到分号，则执行 SQL 语句
+			Helpers::output("执行SQL语句:".$sql);
+			if (substr(trim($line), -1, 1) == ';') {
+				if (!$conn->query($sql)) {
+					Helpers::output( 'Error executing SQL statement: ' . $sql, 'error');
+					Helpers::output( 'MySQL Error: ' . $conn->error, 'error');
+					
 				}else{
-					Helpers::output( '数据库迁移语句执行成功'.$statement, 'success');
+					Helpers::output( '数据库迁移语句执行成功'.$sql, 'success');
 				}
+				$sql = ''; // 清空 SQL 语句
 			}
 		}
+		fclose($file); 
 	}
 	
 	/**
@@ -73,7 +83,7 @@ class Migrate {
 				if (!file_exists($upgradeFilePath)) {
 					return;
 				}
-				file_put_contents($localFilePath, file_get_contents($upgradeFilePath));
+				FileSystem::writeByPath($localFilePath, $upgradeFilePath);
 				break;
 		}
 		Helpers::output( '执行完成， 操作：'.$state.', 文件：'.$upgradeFilePath,'success');

@@ -10,7 +10,19 @@ class FileSystem {
 	
 	public static function writeByPath($filePath, $localFilePath)
 	{
-		return file_put_contents($filePath, file_get_contents($localFilePath));
+		if (!is_file($localFilePath)) {
+			throw new Exception("Source file does not exist: {$localFilePath}");
+		}
+		
+		if (!is_writable(dirname($filePath))) {
+			throw new Exception('Destination directory is not writable: ' . dirname($filePath));
+		}
+		is_dir(dirname($filePath)) or mkdir(dirname($filePath), 0775, true);
+		if (!copy($localFilePath, $filePath)) {
+			throw new Exception("Failed to copy file from '{$localFilePath}' to '{$filePath}'");
+		}
+		
+		return true;
 	}
 	
 	public static function write($filePath, $contents)

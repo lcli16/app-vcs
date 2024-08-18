@@ -4,6 +4,7 @@ namespace Lcli\AppVcs;
 
 use Lcli\AppVcs\Cli\Cli;
 use Module\AppVcs\Util\ToolsUtil;
+use function AlibabaCloud\Client\value;
 
 class Helpers {
 	public static $workPath = 'storage/appvcs';
@@ -135,13 +136,31 @@ class Helpers {
 	public static function getUpgradeData()
 	{
 		$filename = self::getUpgradeDataFileName();
-		$content  = @file_get_contents($filename);
-		if ($content) {
-			$result = json_decode($content, true);
-		} else {
-			$result = [];
+		if (!is_file($filename)) {
+			return [];
 		}
-		return $result;
+		
+		$fileHandle = fopen($filename, 'r');
+		if ($fileHandle === false) {
+			throw new Exception("Failed to open file: {$filename}");
+		}
+		
+		$content = '';
+		while (!feof($fileHandle)) {
+			$chunk = fread($fileHandle, 8192); // 读取 8KB 的数据块
+			if ($chunk === false) {
+				fclose($fileHandle);
+				throw new Exception("Failed to read chunk from file: {$filename}");
+			}
+			$content .= $chunk;
+		}
+		fclose($fileHandle);
+		$result = json_decode($content, true);
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			return [];
+			// throw new Exception('Failed to decode JSON content: ' . json_last_error_msg());
+		}
+		return $result ? : [];
 	}
 	
 	public static function setUpgradeData($data)
@@ -268,29 +287,34 @@ class Helpers {
 		return $json_response['ip'];
 	}
 	
-	public static function output($msg, $type = 'info')
+	public static function output($msg, $type = 'info', $progress=null)
 	{
+		if (!is_null($progress)){
+			Helpers::setProgress($progress);
+		}
+		
 		if (php_sapi_name() === 'cli') {
 			$cli = new Cli();
+			
 			switch ($type) {
 				case 'error':
-					$cli->error($msg);
+					$cli->success($msg);
 					break;
 				case 'success':
 					$cli->success($msg);
 					break;
 				case 'warning':
-					$cli->warning($msg);
+					$cli->success($msg);
 					break;
 				case 'debug':
-					$cli->info($msg);
+					$cli->success($msg);
 					break;
 				default:
-					$cli->debug($msg);
+					$cli->success($msg);
 					break;
 			}
 		}
-		
+		self::logWrite($msg, $type);
 	}
 	
 	
@@ -373,5 +397,75 @@ class Helpers {
 			return true;
 		}
 		return false;
+	}
+	
+	public static function getProgressFile($upgradeVersion)
+	{
+		$tempFilePath = self::getTempFilePath($upgradeVersion);
+		return $tempFilePath . '/progress.txt';
+	}
+	
+	public static function getProgress()
+	{
+		$progressFile = self::getProgressFile($upgradeVersion);
+		return file_get_contents($progressFile);
+	}
+	public static function setProgress($value)
+	{
+		$upgradeVersion = self::getVersion();
+		$progressFile = self::getProgressFile($upgradeVersion);
+		file_put_contents($progressFile, $value);
+	}
+	
+	
+	
+	public static function logWrite($content, $type='info', $custom=false)
+	{
+		$fileName = '';
+		$rootPath = self::getRootPath();
+		$appId = self::getAppId();
+		$id = self::$config['id']??'';
+		
+		if ($rootPath && $appId && $id){
+			$name = md5($appId.'-'.$id);
+			$logName = "{$name}.log";
+			$storagePath = $rootPath . "/storage/appvcs/{$appId}/log";
+			is_dir($storagePath) or mkdir($storagePath, 0775, true);
+			$fileName = $storagePath.'/'.$logName;
+		}
+		if (!$fileName){
+			return ;
+		}
+		$date = date('Y-m-d H:i:s');
+		$ip = self::get_client_ip();
+		if ($custom){
+			$msg = $content."\n";
+			file_put_contents($fileName,  $content."\n", FILE_APPEND);
+		}else{
+			$msg = "[ $type ][{$date}] {$ip} ".$content."\n";
+			file_put_contents($fileName, "[ $type ][{$date}] {$ip} ".$content."\n", FILE_APPEND);
+		}
+		return $msg;
+	}
+
+	static function get_client_ip()
+	{
+		$ipaddress = '';
+		if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+			$ipaddress = $_SERVER['HTTP_CLIENT_IP'];
+		} else if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		} else if (isset($_SERVER['HTTP_X_FORWARDED'])) {
+			$ipaddress = $_SERVER['HTTP_X_FORWARDED'];
+		} else if (isset($_SERVER['HTTP_FORWARDED_FOR'])) {
+			$ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
+		} else if (isset($_SERVER['HTTP_FORWARDED'])) {
+			$ipaddress = $_SERVER['HTTP_FORWARDED'];
+		} else if (isset($_SERVER['REMOTE_ADDR'])) {
+			$ipaddress = $_SERVER['REMOTE_ADDR'];
+		} else {
+			$ipaddress = 'UNKNOWN';
+		}
+		return $ipaddress;
 	}
 }

@@ -185,7 +185,7 @@ class Backup {
 			Helpers::output('本地文件:'.$localFilePath.'，备份文件:'.$backupFilePath,'debug');
 			if (file_exists($backupFilePath)) {
 				Helpers::output('备份文件恢复完成, 还原至:'.$localFilePath,'success');
-				FileSystem::write($localFilePath, file_get_contents($backupFilePath));
+				FileSystem::writeByPath($localFilePath, $backupFilePath);
 			}
 		}
 		return true;
@@ -222,26 +222,35 @@ class Backup {
 			Helpers::output('读取数据库文件：'.$sqlFile,'debug');
 			if (file_exists($sqlFile)) {
 				
-				$sqlScript = file_get_contents($sqlFile);
-				Helpers::output($sqlScript,'debug');
-				// 使用正则表达式分割SQL脚本成单个语句
-				$delimiter     = ';';          // SQL语句结束符
-				$pattern       = "/;(\r?\n)/"; // 正则表达式匹配语句结束符后跟换行符
-				$sqlStatements = preg_split($pattern, $sqlScript);
 				
-				// 执行每个SQL语句
-				foreach ($sqlStatements as $stmt) {
-					$stmt = trim($stmt); // 去除首尾空白字符
-					Helpers::output('执行回滚数据库:'.$stmt,'debug');
-					if (!empty($stmt)) { // 检查SQL语句是否为空
-						if ($database->query($stmt) === FALSE) {
-							Helpers::output('执行回滚失败: ' . $database->error() . ', sql:' . $stmt, 'error');
-							continue;
-						}else{
-							Helpers::output('执行回滚数据库成功:'.$stmt,'success');
+				// 打开文件
+				$file = fopen($sqlFile, 'r');
+				// 用于存储 SQL 语句
+				$sql = '';
+				while (!feof($file)) {
+					$line = fgets($file);
+					
+					// 忽略注释行
+					if (preg_match('/^\s*(--|\/\*)/', $line)) {
+						continue;
+					}
+					// 添加当前行到 SQL 语句
+					$sql .= $line;
+					Helpers::output('执行回滚数据库:' . $sql);
+					// 如果遇到分号，则执行 SQL 语句
+					if (substr(trim($line), -1, 1) == ';') {
+						if (!$database->query($sql)) {
+							Helpers::output('Error executing SQL statement: ' . $sql, 'error');
+							Helpers::output('执行回滚失败: ' . $database->error(), 'error');
+							
+						} else{
+							Helpers::output('执行回滚数据库成功:'.$sql,'success');
 						}
+						$sql = ''; // 清空 SQL 语句
 					}
 				}
+				fclose($file);
+				
 			} else{
 				Helpers::output('数据库文件不存在，自动过滤:'.$sqlFile,'warning');
 			}

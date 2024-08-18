@@ -60,6 +60,7 @@ BANNER;
 		$options->registerCommand('deploy', '部署项目');
 		$options->registerCommand('init', '初始化插件');
 		
+		$options->registerOption('id', '进程 ID', 'I', true);
 		$options->registerOption('project_id', '定义项目名称', 'n', true);
 		$options->registerOption('url', '设置服务端APi 地址', 'u', true);
 		$options->registerOption('project_path', '项目目录', 'P', true);
@@ -91,6 +92,7 @@ BANNER;
 		if ($path = $options->getOpt('path')) {
 			$this->setConfig('root_path', $path);
 		}
+		
 		// 项目目录
 		if ($projectPath = $options->getOpt('project_path')) {
 			$this->setConfig('project_path', $projectPath);
@@ -104,6 +106,12 @@ BANNER;
 		if ($url = $options->getOpt('url')) {
 			
 			$this->setConfig('server_url', $url);
+		}
+	
+		// 服务端目录
+		if ($id = $options->getOpt('id')) {
+			
+			$this->setConfig('id', $id);
 		}
 		// 数据库配置
 		if ($database = $options->getOpt('database')) {
@@ -247,7 +255,7 @@ BANNER;
 			'client_secret' => $this->config['client_secret'],
 			'config'        => $config,
 			'client_connect_url'        => isset($this->config['client_connect_url'])?$this->config['client_connect_url']:''
-		]; 
+		];
 		// 注册客户端
 		$result  = \Lcli\AppVcs\Kernel\Request::instance()->register($data);
 		$command = $result['command'];
