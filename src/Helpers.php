@@ -282,9 +282,6 @@ class Helpers {
 		$host     = gethostbyname($hostName);
 		$ip       = $hostName . '@' . $host;
 		return $ip;
-		$response      = file_get_contents('https://api.ipify.org?format=json');
-		$json_response = json_decode($response, true);
-		return $json_response['ip'];
 	}
 	
 	static function findSqlComments($sqlText) {
