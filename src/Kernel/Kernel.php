@@ -126,25 +126,29 @@ class Kernel {
 			
 			if ($url){
 				Helpers::output('正在下载更新包补丁'.$url,'info', 50);
-				if(file_exists($zipFile)){
-					$filePutRsult = true;
-				}else{
+				if(!file_exists($zipFile)){
 					// 下载远程文件并保存到本地
-					$filePutRsult = true;
-					shell_exec("curl -o $zipFile {$url}");
-					sleep(1);
-				}
-				if ($filePutRsult){
-					Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir, 'info',60);
-					$zip = new ZipArchive();
-					$zipOpen = $zip->open($zipFile);
-					if ($zipOpen === TRUE) {
-						$zip->extractTo($destinationDir);
-						$zip->close();
-						Helpers::output("解压补丁包【{$zipFile}】完成，解压至:{$destinationDir}",'success', 30);
+					exec("curl -o $zipFile {$url}", $downRes, $downResVar);
+					if ($downResVar === 0){
+						Helpers::output("下载补丁包成功",'success', 55);
 					}else{
-						Helpers::output("解压补丁包【{$zipFile}】失败：:{$zipOpen}",'error', 25);
+						Helpers::output("下载补丁包失败",'error', 55);
+						Helpers::output($downRes,'error', 55);
+						exit();
 					}
+					// 清除文件系统的缓存
+					clearstatcache();
+				}
+				
+				Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir, 'info',60);
+				$command = "unzip -o '{$zipFile}' -d {$destinationDir}";
+				 exec($command, $unzipOutput, $returnVar);
+				if ($returnVar ===  0) {
+					Helpers::output("解压补丁包【{$zipFile}】完成!!!，解压至:{$destinationDir}",'success', 30);
+				}else{
+					Helpers::output("解压补丁包【{$zipFile}】失败",'error', 25);
+					Helpers::output($unzipOutput,'error', 25);
+					exit();
 				}
 				
 				if (intval($publishAction) === 1){
@@ -155,71 +159,72 @@ class Kernel {
 			}
 			// 3.开始执行升级
 			Helpers::output("正在获取更新文件", "debug", 75);
-			
-			foreach ( $files as $file ) {
-				$state = $file[ 'state' ];
-				$path = $file[ 'path' ];
-				$type = $file[ 'type' ];
-				Helpers::output("正在迁移文件：{$path}-{$state}-{$type}", 'debug');
-				if (!$path) {
-					continue;
-				}
-				
-				// 获取更新文件
-				$upgradeFilePath = $destinationDir . '/' . $path;
-				$localFilePath = $projectPath . '/' . $path;
-				
-				// 安全文件只运行不下载
-				$safeFileOrDirs = [Helpers::getDatabaseSqlPath($upgradeVersion)];
-				if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']){
-					$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
-				}
-				Helpers::output("安全文件", 'debug');
-				Helpers::output(json_encode($safeFileOrDirs, JSON_UNESCAPED_UNICODE), 'debug');
-				// 过滤文件
-				$filterFiles = isset($versionInfo['filter_files'])?$versionInfo['filter_files']:[];
-				if (!$filterFiles){
-					$filterFiles = [];
-				}
-				Helpers::output('过滤文件', 'debug');
-				Helpers::output(json_encode($filterFiles, JSON_UNESCAPED_UNICODE), 'debug');
-				// 存在指定过滤文件， 那么直接过滤
-				if (in_array($path, $filterFiles)   ){
-					Helpers::output('已过滤：'.$path.'，文件', 'warning');
-					continue;
-				}
-			 
-				// 如果包含， 也过滤
-				foreach ($filterFiles as $filterFileItem){
-					$isContains =  strpos($path, $filterFileItem)!==false;
-					if (!$isContains){
-						Helpers::output('已过滤：'.$path.'，文件(包含)', 'warning');
-						continue 2;
+			if ($files){
+				foreach ($files as $file) {
+					$state = $file['state'];
+					$path  = $file['path'];
+					$type  = $file['type'];
+					Helpers::output("正在迁移文件：{$path}-{$state}-{$type}", 'debug');
+					if (!$path) {
+						continue;
 					}
-				}
-				 
-				if (!in_array($path, $safeFileOrDirs)){
 					
-					Helpers::output('正在安装升级文件,类型：'.$type.'，安装至：'.$localFilePath.', 升级文件：'.$upgradeFilePath);
-					switch ($type) {
-						// case 'file':
-						// 	Migrate::file($state, $localFilePath, $upgradeFilePath);
-						//
-						// 	break;
-						case 'sql': // 数据库迁移
-							Migrate::database($versionInfo['version']);
-							break;
-						case 'config': // 配置更新,
-						default: // 业务数据更新
-							// Migrate::file($state, $localFilePath, $upgradeFilePath);
-							break;
+					// 获取更新文件
+					$upgradeFilePath = $destinationDir . '/' . $path;
+					$localFilePath   = $projectPath . '/' . $path;
+					
+					// 安全文件只运行不下载
+					$safeFileOrDirs = [Helpers::getDatabaseSqlPath($upgradeVersion)];
+					if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']) {
+						$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
 					}
+					Helpers::output('安全文件', 'debug');
+					Helpers::output(json_encode($safeFileOrDirs, JSON_UNESCAPED_UNICODE), 'debug');
+					// 过滤文件
+					$filterFiles = isset($versionInfo['filter_files']) ? $versionInfo['filter_files'] : [];
+					if (!$filterFiles) {
+						$filterFiles = [];
+					}
+					Helpers::output('过滤文件', 'debug');
+					Helpers::output(json_encode($filterFiles, JSON_UNESCAPED_UNICODE), 'debug');
+					// 存在指定过滤文件， 那么直接过滤
+					if (in_array($path, $filterFiles)) {
+						Helpers::output('已过滤：' . $path . '，文件', 'warning');
+						continue;
+					}
+					
+					// 如果包含， 也过滤
+					foreach ($filterFiles as $filterFileItem) {
+						$isContains = strpos($path, $filterFileItem) !== false;
+						if (!$isContains) {
+							Helpers::output('已过滤：' . $path . '，文件(包含)', 'warning');
+							continue 2;
+						}
+					}
+					
+					if (!in_array($path, $safeFileOrDirs)) {
+						
+						Helpers::output('正在安装升级文件,类型：' . $type . '，安装至：' . $localFilePath . ', 升级文件：' . $upgradeFilePath);
+						switch ($type) {
+							// case 'file':
+							// 	Migrate::file($state, $localFilePath, $upgradeFilePath);
+							//
+							// 	break;
+							case 'sql': // 数据库迁移
+								Migrate::database($versionInfo['version']);
+								break;
+							case 'config': // 配置更新,
+							default: // 业务数据更新
+								// Migrate::file($state, $localFilePath, $upgradeFilePath);
+								break;
+						}
+					}
+					
 				}
-				
+				Helpers::output('文件升级完成', 'success', 80);
+			}else{
+				Helpers::output('没有需要升级的文件', 'success', 80);
 			}
-			Helpers::output('文件升级完成', 'success', 80);
-			// 测试升级失败
-			// $d = 1/0;
 			
 			// 如果有脚本指令, 运行脚本
 			$scripts = isset($versionInfo['script'])?$versionInfo['script']:[];
@@ -231,7 +236,6 @@ class Kernel {
 					Helpers::output($output);
 				}
 			}
-			// $d = 1/0;
 			// 提交事务
 			$transction->success($result);
 			return true;

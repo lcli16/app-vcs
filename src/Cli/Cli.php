@@ -128,7 +128,9 @@ BANNER;
 		}
 		
 		// 设置版本号
-		$projectVersion = $options->getOpt('project_version');
+		if ($projectVersion = $options->getOpt('project_version')) {
+			$this->setConfig('version', $projectVersion);
+		}
 		//注册客户端
 		if ($cmd == 'register') {
 			if (!$url) {
@@ -216,7 +218,13 @@ BANNER;
 		$this->config['root_path'] = $rootPath;
 		$this->config['app_id']    = $appId;
 		Kernel::upgrade($appId, $version);
-		$this->success("部署成功! 版本:v{$version} ");
+		$progress = Helpers::getProgress(Helpers::getVersion());
+		if (intval($progress) !== 100){
+			$this->error("部署失败! 版本:v{$version} ");
+		}else{
+			$this->success("部署成功! 版本:v{$version} ");
+		}
+		exit();
 	}
 	
 	public function rollback($appId, $version)
