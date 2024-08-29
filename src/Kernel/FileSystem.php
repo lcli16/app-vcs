@@ -41,6 +41,9 @@ class FileSystem {
 	public static function  clearDir($projectDir ) {
 		$upgradeData = Helpers::getUpgradeData();
 		$files = $upgradeData['files'];
+		if (!$files){
+			return;
+		}
 		foreach ($files as $file){
 			$filePath = $projectDir.'/'.$file['path'];
 			if ($file['state'] === 'D' && is_file($filePath)){

@@ -19,7 +19,11 @@ class Kernel {
 	 */
 	public static function check($appId, $version = null)
 	{
-		return \Lcli\AppVcs\Kernel\Request::instance()->check([ 'appId' => $appId, 'version' => $version ]);
+		return \Lcli\AppVcs\Kernel\Request::instance()
+		                                  ->check([
+			                                          'appId'   => $appId,
+			                                          'version' => $version
+		                                          ]);
 	}
 	
 	/**
@@ -34,34 +38,41 @@ class Kernel {
 	{
 		ignore_user_abort(true);
 		set_time_limit(0);
-		 
-	    ini_set('memory_limit', '-1');
-		Helpers::output('开始执行升级程序:应用ID:'.$appId.', 版本号:'.$version, 'info', 10);
+		
+		ini_set('memory_limit', '-1');
+		Helpers::output('开始执行升级程序:应用ID:' . $appId . ', 版本号:' . $version, 'info', 10);
 		// 开始事务
 		$transction = new Transaction();
 		
-		$transction->start(['appId' => $appId, 'version' => $version]);
+		$transction->start([
+			                   'appId'   => $appId,
+			                   'version' => $version
+		                   ]);
 		
-		$result = \Lcli\AppVcs\Kernel\Request::instance()->upgrade([ 'appId' => $appId, 'version' => $version ]);
-		if (!$result){
+		$result = \Lcli\AppVcs\Kernel\Request::instance()
+		                                     ->upgrade([
+			                                               'appId'   => $appId,
+			                                               'version' => $version
+		                                               ]);
+		if (!$result) {
 			throw new  AppVcsException('获取版本信息失败');
 		}
 		
-		Helpers::output('正在获取更新应用信息'.$appId.', 版本号:'.$version, 'info', 20);
-		Helpers::output(json_encode($result,JSON_UNESCAPED_UNICODE));
-		$versionInfo = isset($result['versionInfo'])?$result['versionInfo']:[];
+		Helpers::output('正在获取更新应用信息' . $appId . ', 版本号:' . $version, 'info', 20);
+		Helpers::output(json_encode($result, JSON_UNESCAPED_UNICODE));
+		$versionInfo = isset($result['versionInfo']) ? $result['versionInfo'] : [];
 		// 获取发布操作类型:0=按需发布,1=全量发布
-		$publishAction = isset($versionInfo['publish_action'])?$versionInfo['publish_action']:0;
-		$upgradeVersion =  $versionInfo['version'];
+		$publishAction  = isset($versionInfo['publish_action']) ? $versionInfo['publish_action'] : 0;
+		$upgradeVersion = $versionInfo['version'];
 		
 		// 保存更新数据
 		Helpers::setUpgradeData($result);
 		
 		try {
 			// 操作更新
-			$files = isset($result['files']) ?$result[ 'files' ]: [];
-			$url = $result[ 'url' ];
-			$fileName = isset($result[ 'fileName' ])?$result[ 'fileName' ]:'app-vcs-upgrade.zip';
+			$files        = isset($result['files']) ? $result['files'] : [];
+			$url          = $result['url'];
+			$fileName     = isset($result['fileName']) ? $result['fileName'] : 'app-vcs-upgrade.zip';
 			$tempFilePath = Helpers::getTempFilePath($upgradeVersion);
 			if (!$tempFilePath) {
 				throw new  AppVcsException('请配置根目录');
@@ -72,16 +83,16 @@ class Kernel {
 			if (!$rootPath) {
 				throw new  AppVcsException('请配置根目录');
 			}
-		
+			
 			$checkDir = Helpers::checkPath($rootPath);
 			
-			if (!$checkDir){
+			if (!$checkDir) {
 				return false;
 			}
 			is_dir($rootPath) or mkdir($rootPath, 0755, true);
 			// 项目目录
-			$projectPath  = Helpers::getProjectPath();
-			if (!$projectPath){
+			$projectPath = Helpers::getProjectPath();
+			if (!$projectPath) {
 				$projectPath = $rootPath;
 			}
 			
@@ -92,74 +103,82 @@ class Kernel {
 			
 			// 1.备份文件
 			// 如果是全量发布， 那么备份全部文件
-			if (intval($publishAction) === 1){
+			if (intval($publishAction) === 1) {
 				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
 				$projectFiles = FileSystem::getAllFiles($projectPath, false);
-				$_files = [];
+				$_files       = [];
 				
 				foreach ($projectFiles as $fileFullPath) {
-					$path = str_replace($projectPath , '', $fileFullPath);
+					$path     = str_replace($projectPath, '', $fileFullPath);
 					$_files[] = [
-						'path' => $path,
+						'path'     => $path,
 						'fullPath' => $fileFullPath
 					];
 				}
 				$backupStatus = Backup::file($_files, $result);
 				
-			}else{
+			} else {
 				$backupStatus = Backup::file($files, $result);
 			}
 			
-			if (!$backupStatus){
-				Helpers::output('升级失败:备份文件失败','error', 30);
-				return ;
+			if (!$backupStatus) {
+				Helpers::output('升级失败:备份文件失败', 'error', 30);
+				return;
 			}
 			// 2.备份数据库
 			$issetTables = isset($versionInfo['tables_files']);
-			$backup = $issetTables?$versionInfo['tables_files']:[];
+			$backup      = $issetTables ? $versionInfo['tables_files'] : [];
 			
 			$backupStatus = Backup::database($backup, $upgradeVersion);
-			if (!$backupStatus){
+			if (!$backupStatus) {
 				Helpers::output('升级失败:备份sql失败', 'error', 40);
-				return ;
+				return;
 			}
 			
-			if ($url){
-				Helpers::output('正在下载更新包补丁'.$url,'info', 50);
-				if(!file_exists($zipFile)){
+			if ($url) {
+				Helpers::output('正在下载更新包补丁' . $url, 'info', 50);
+				if (!file_exists($zipFile)) {
 					// 下载远程文件并保存到本地
 					exec("curl -o $zipFile {$url}", $downRes, $downResVar);
-					if ($downResVar === 0){
-						Helpers::output("下载补丁包成功",'success', 55);
-					}else{
-						Helpers::output("下载补丁包失败",'error', 55);
-						Helpers::output($downRes,'error', 55);
+					if ($downResVar === 0) {
+						Helpers::output('下载补丁包成功', 'success', 55);
+					} else {
+						Helpers::output('下载补丁包失败', 'error', 55);
+						Helpers::output($downRes, 'error', 55);
 						exit();
 					}
 					// 清除文件系统的缓存
 					clearstatcache();
 				}
-				
-				Helpers::output('补丁包下载完成：'.$zipFile.',正在解压文件至：'.$destinationDir, 'info',60);
-				$command = "unzip -o '{$zipFile}' -d {$destinationDir}";
-				 exec($command, $unzipOutput, $returnVar);
-				if ($returnVar ===  0) {
-					Helpers::output("解压补丁包【{$zipFile}】完成!!!，解压至:{$destinationDir}",'success', 30);
-				}else{
-					Helpers::output("解压补丁包【{$zipFile}】失败",'error', 25);
-					Helpers::output($unzipOutput,'error', 25);
+				if (!is_dir($destinationDir)) {
+					$mkDirStatus = mkdir($destinationDir, 0775, true);
+					if (!$mkDirStatus) {
+						Helpers::output('解压目录不存在[' . $destinationDir . '],自动创建也失败,请手动创建', 'error', 55);
+						exit();
+					}
+				}
+				Helpers::output('补丁包下载完成：' . $zipFile . ',正在解压文件至：' . $destinationDir, 'info', 60);
+				$command = "unzip -o {$zipFile} -d {$destinationDir}";
+				exec($command, $unzipOutput, $returnVar);
+				Helpers::output($command, 'debug');
+				if ($returnVar === 0) {
+					Helpers::output("[成功]解压补丁包【{$zipFile}】完成!!!，解压至:{$destinationDir}", 'success', 30);
+				} else {
+					$execCodeMsg = self::execCode($returnVar);
+					Helpers::output("[失败]解压补丁包【{$zipFile}】状态码:{$returnVar}, $execCodeMsg", 'error', 25);
+					Helpers::output(is_array($unzipOutput) ? json_encode($unzipOutput, JSON_UNESCAPED_UNICODE) : $unzipOutput, 'error', 25);
 					exit();
 				}
 				
-				if (intval($publishAction) === 1){
-					Helpers::output('补丁包类型：全量发布'.$url, 'info',70);
+				if (intval($publishAction) === 1) {
+					Helpers::output('补丁包类型：全量发布' . $url, 'info', 70);
 					// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
 					FileSystem::clearDir($projectPath);
 				}
 			}
 			// 3.开始执行升级
-			Helpers::output("正在获取更新文件", "debug", 75);
-			if ($files){
+			Helpers::output('正在获取更新文件', 'debug', 75);
+			if ($files) {
 				foreach ($files as $file) {
 					$state = $file['state'];
 					$path  = $file['path'];
@@ -222,16 +241,16 @@ class Kernel {
 					
 				}
 				Helpers::output('文件升级完成', 'success', 80);
-			}else{
+			} else {
 				Helpers::output('没有需要升级的文件', 'success', 80);
 			}
 			
 			// 如果有脚本指令, 运行脚本
-			$scripts = isset($versionInfo['script'])?$versionInfo['script']:[];
-			if ($scripts && is_array($scripts)){
-				foreach ($scripts as $cmd){
+			$scripts = isset($versionInfo['script']) ? $versionInfo['script'] : [];
+			if ($scripts && is_array($scripts)) {
+				foreach ($scripts as $cmd) {
 					if (!$cmd) continue;
-					Helpers::output('正在执行脚本:'.$cmd);
+					Helpers::output('正在执行脚本:' . $cmd);
 					$output = shell_exec($cmd);
 					Helpers::output($output);
 				}
@@ -239,11 +258,11 @@ class Kernel {
 			// 提交事务
 			$transction->success($result);
 			return true;
-		} catch (\Error $e){
+		} catch (\Error $e) {
 			
 			self::throwError($result, $transction, $e);
-		 
-		} catch (\Exception $e){
+			
+		} catch (\Exception $e) {
 			
 			
 			// 回滚程序
@@ -273,9 +292,8 @@ class Kernel {
 	
 	public static function rollback()
 	{
-		  Backup::rollback();
+		Backup::rollback();
 	}
-	
 	
 	
 	/**
@@ -288,6 +306,18 @@ class Kernel {
 	}
 	
 	
-	
+	public static function execCode($code)
+	{
+		$msg = '未知错误';
+		switch ($code) {
+			case '1':
+				$msg = '权限不足!' . shell_exec('whoami');
+				break;
+			case '50':
+				$msg = '这可能与权限有关,请检查解压目录是否是www用户组,如不是请更新为www用户组';
+				break;
+		}
+		return $msg;
+	}
 	
 }

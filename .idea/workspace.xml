@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs  update">
+    <list default="true" id="852177fa-11f7-474e-b59e-9051771ee640" name="更改" comment="app-vcs  update 1.0.6">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Config/config.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Config/config.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Helpers.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Helpers.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/FileSystem.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/FileSystem.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Kernel/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Kernel/Kernel.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,8 +69,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PS-241.18968.24" />
-        <option value="bundled-php-predefined-ba97393d7c68-48a1a656d44e-com.jetbrains.php.sharedIndexes-PS-241.18968.24" />
+        <option value="bundled-js-predefined-d6986cc7102b-410509235cf1-JavaScript-PS-242.20224.427" />
+        <option value="bundled-php-predefined-a98d8de5180a-d6acee4cb394-com.jetbrains.php.sharedIndexes-PS-242.20224.427" />
       </set>
     </attachedChunks>
   </component>
@@ -101,7 +101,13 @@
       <workItem from="1723649288780" duration="262000" />
       <workItem from="1723649572307" duration="270000" />
       <workItem from="1723649858432" duration="1017000" />
-      <workItem from="1723798629973" duration="8504000" />
+      <workItem from="1723798629973" duration="9744000" />
+      <workItem from="1724035345858" duration="16000" />
+      <workItem from="1724139745517" duration="619000" />
+      <workItem from="1724230268217" duration="599000" />
+      <workItem from="1724912881035" duration="752000" />
+      <workItem from="1724913749779" duration="5410000" />
+      <workItem from="1724943796747" duration="4139000" />
     </task>
     <task id="LOCAL-00001" summary="1.0.0 init commit">
       <option name="closed" value="true" />
@@ -463,7 +469,23 @@
       <option name="project" value="LOCAL" />
       <updated>1723969894353</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="app-vcs  update">
+      <option name="closed" value="true" />
+      <created>1723973303109</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1723973303109</updated>
+    </task>
+    <task id="LOCAL-00047" summary="app-vcs  update 1.0.6">
+      <option name="closed" value="true" />
+      <created>1724926192558</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1724926192558</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -495,7 +517,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="app-vcs-v1.2.1&#10;&#10;[新增]安装回调&#10;[修改]修复优化系统" />
     <MESSAGE value="内测第一版本发布&#10;&#10;[修复]删除文件操作导致操作失败&#10;[新增]使用文档" />
     <MESSAGE value="文档修改&#10;&#10;[更新]更新文档" />
     <MESSAGE value="添加cli命令" />
@@ -520,7 +541,8 @@
     <MESSAGE value="app-vcs cli update" />
     <MESSAGE value="app-vcs c update" />
     <MESSAGE value="app-vcs  update" />
-    <option name="LAST_COMMIT_MESSAGE" value="app-vcs  update" />
+    <MESSAGE value="app-vcs  update 1.0.6" />
+    <option name="LAST_COMMIT_MESSAGE" value="app-vcs  update 1.0.6" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>
