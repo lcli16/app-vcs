@@ -50,6 +50,33 @@ class Backup {
 		
 		return true;
 	}
+	/**
+	 * 备份文件
+	 * @param array $upgradeFiles 需要备份的文件
+	 * @return bool
+	 */
+	public static function fileByTar()
+	{
+		
+		$ignoreBackupFiles =  Helpers::getIgnoreBackupFiles();
+		
+		$options = [];
+		foreach ($ignoreBackupFiles as $k => $ignoreBackupFile) {
+			$options[] = "--exclude='{$ignoreBackupFile}'";
+		}
+	 
+		$options  = implode(' ', $options);
+		
+		$rootPath   = Helpers::getProjectPath();
+		$backFilePath = Helpers::getBackupFile();
+		$cmd = "tar -czf {$backFilePath} -C {$rootPath} {$options} .";
+		Helpers::output('执行文件备份：'.$cmd, 'debug', 30);
+		exec($cmd, $out, $resVar);
+		if ($resVar !== 0) {
+			return false;
+		}
+		return true;
+	}
 	
 	/**
 	 * 备份数据库
@@ -147,11 +174,9 @@ class Backup {
 	protected static function rollbackFile($data = [])
 	{
 		$upgradeData = Helpers::getUpgradeData();
-		
 		$rootPath    = Helpers::getProjectPath();
 		$backupPath  = Helpers::getBackupPath();
-		$backupFiles = FileSystem::getFiles($backupPath);
-		
+	 
 		// 找到新增的文件， 删除了
 		$upgradeFiles = isset($upgradeData['files']) ? $upgradeData['files'] : [];
 		foreach ($upgradeFiles as $file) {
@@ -175,18 +200,23 @@ class Backup {
 			Helpers::output( json_encode($file, JSON_UNESCAPED_UNICODE),'debug');
 		}
 		
-		// 恢复备份文件
-		foreach ($backupFiles as $file) {
-			$path = $file['path'];
-			Helpers::output('正在恢复备份文件:'.$path,'debug');
-			if (!$path) continue;
-			$backupFilePath = $backupPath . '/' . $path;
-			$localFilePath  = $rootPath . '/' . $path;
-			Helpers::output('本地文件:'.$localFilePath.'，备份文件:'.$backupFilePath,'debug');
-			if (file_exists($backupFilePath)) {
-				Helpers::output('备份文件恢复完成, 还原至:'.$localFilePath,'success');
-				FileSystem::writeByPath($localFilePath, $backupFilePath);
-			}
+		
+		$destinationDir = Helpers::getProjectPath();
+		$backFilePath = Helpers::getBackupFile();
+		if (!file_exists($backFilePath)){
+			Helpers::output('备份文件不存在:'.$command,'error');
+			return true;
+		}
+		$command = "tar -xzvf {$backFilePath} -C {$destinationDir}";
+		Helpers::output('正在恢复备份文件:'.$command,'warning');
+		exec($command, $unzipOutput, $returnVar);
+		if ($returnVar === 0) {
+			Helpers::output("[成功]解压补丁包【{$backFilePath}】完成!!!，解压至:{$destinationDir}", 'success', 30);
+		} else {
+			$execCodeMsg = self::execCode($returnVar);
+			Helpers::output("[失败]解压补丁包【{$backFilePath}】状态码:{$returnVar}, $execCodeMsg", 'error', 25);
+			Helpers::output(is_array($unzipOutput) ? json_encode($unzipOutput, JSON_UNESCAPED_UNICODE) : $unzipOutput, 'error', 25);
+			exit();
 		}
 		return true;
 	}

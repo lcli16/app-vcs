@@ -96,10 +96,10 @@ BANNER;
 		// 项目目录
 		if ($projectPath = $options->getOpt('project_path')) {
 			$this->setConfig('project_path', $projectPath);
-			$checkDir = Helpers::checkPath($projectPath);
-			if (!$checkDir) {
-				return false;
-			}
+			// $checkDir = Helpers::checkPath($projectPath);
+			// if (!$checkDir) {
+			// 	return false;
+			// }
 		}
 		
 		// 服务端 API
@@ -107,12 +107,13 @@ BANNER;
 			
 			$this->setConfig('server_url', $url);
 		}
-	
+		
 		// 服务端目录
 		if ($id = $options->getOpt('id')) {
 			
 			$this->setConfig('id', $id);
 		}
+		
 		// 数据库配置
 		if ($database = $options->getOpt('database')) {
 			$parseDb  = parse_url($database);
@@ -171,6 +172,7 @@ BANNER;
 			}
 			$appId = $args[0];
 			$this->setConfig('app_id', $appId);
+			
 			$this->deploy($appId, $projectVersion);
 			exit();
 		}
@@ -217,12 +219,13 @@ BANNER;
 		
 		$this->config['root_path'] = $rootPath;
 		$this->config['app_id']    = $appId;
+		
 		Kernel::upgrade($appId, $version);
 		$progress = Helpers::getProgress(Helpers::getVersion());
 		if (intval($progress) !== 100){
-			$this->error("部署失败! 版本:v{$version} ");
+			$this->error("[{$progress}%]部署失败! 版本:v{$version} ");
 		}else{
-			$this->success("部署成功! 版本:v{$version} ");
+			$this->success("[{$progress}%]部署成功! 版本:v{$version} ");
 		}
 		exit();
 	}

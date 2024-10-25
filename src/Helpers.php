@@ -40,7 +40,11 @@ class Helpers {
 	public static function getWorkPath()
 	{
 		$rootPath = static::getRootPath();
+		if (self::$config['work_path']??''){
+			static::$workPath =static::$config['work_path'];
+		}
 		$workPath = $rootPath . '/' . static::$workPath . '/' . self::getAppId();
+		// var_dump(static::$config['work_path']);die;
 		return $workPath;
 	}
 	
@@ -56,6 +60,9 @@ class Helpers {
 	{
 		$rootPath     = self::getWorkPath();
 		$tempFilePath = $rootPath . '/temp/' . $upgradeVersion;
+		if (static::$config['temp_file_path']??''){
+			$tempFilePath = $rootPath .'/'.static::$config['temp_file_path'].'/'. $upgradeVersion;
+		}
 		is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
 		return $tempFilePath;
 	}
@@ -75,6 +82,7 @@ class Helpers {
 	public static function getRootPath()
 	{
 		$rootPath = self::config('root_path');
+		
 		if (!$rootPath) {
 			// 查找配置文件
 			$findRootPath = static::findRootPath();
@@ -208,12 +216,11 @@ class Helpers {
 		$rootPath         = self::getWorkPath();
 		$configBackupPath = self::config('backup_path');
 		if ($configBackupPath) {
-			$backupPath = $configBackupPath;
+			$backupPath = $rootPath .'/'.$configBackupPath. '/' . self::getVersion();
 		} else {
 			// 在服务端目录上一级保存, 以免出现全量发布, 未指定项目目录或默认目录导致备份文件一同被删除情况
 			$backupPath = $rootPath . '/backup/' . self::getVersion();
 		}
-		// var_dump($backupPath);die;
 		is_dir($backupPath) or mkdir($backupPath, 0755, true);
 		return $backupPath;
 	}
@@ -224,6 +231,17 @@ class Helpers {
 		$appId    = Helpers::getAppId();
 		return $rootPath . "/{$appId}-version.txt";
 	}
+	public static function getIgnoreBackupFiles()
+	{
+		$ignoreBackupFiles =  self::config('ignore_backup_files');
+		
+		$result = explode("\r\n", $ignoreBackupFiles);
+		// 获取插件工作目录
+		$result[] = self::getWorkPath().'/*';
+		$result[] = self::getBackupPath().'/*';
+		return $result;
+	}
+
 	
 	public static function getVersion()
 	{
@@ -300,7 +318,7 @@ class Helpers {
 			
 			switch ($type) {
 				case 'error':
-					$cli->success($msg);
+					$cli->error($msg);
 					break;
 				case 'success':
 					$cli->success($msg);
@@ -432,7 +450,7 @@ class Helpers {
 		if ($rootPath && $appId && $id){
 			$name = md5($appId.'-'.$id);
 			$logName = "{$name}.log";
-			$storagePath = $rootPath . "/storage/appvcs/{$appId}/log";
+			$storagePath =Helpers::getWorkPath(). "/{$appId}/log";
 			is_dir($storagePath) or mkdir($storagePath, 0775, true);
 			$fileName = $storagePath.'/'.$logName;
 		}
@@ -470,5 +488,17 @@ class Helpers {
 			$ipaddress = 'UNKNOWN';
 		}
 		return $ipaddress;
+	}
+	
+	public static function getBackupZipName()
+	{
+		return 'backup_' . self::getAppId() . '_' . self::getVersion() . '.tar.gz';
+	}
+	
+	public static function getBackupFile()
+	{
+		$name = self::getBackupZipName();
+		$path = self::getBackupPath();
+		return  $path.'/'.$name;
 	}
 }

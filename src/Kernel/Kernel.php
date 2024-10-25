@@ -40,7 +40,8 @@ class Kernel {
 		set_time_limit(0);
 		
 		ini_set('memory_limit', '-1');
-		Helpers::output('开始执行升级程序:应用ID:' . $appId . ', 版本号:' . $version, 'info', 10);
+		
+		
 		// 开始事务
 		$transction = new Transaction();
 		
@@ -58,6 +59,29 @@ class Kernel {
 			throw new  AppVcsException('获取版本信息失败');
 		}
 		
+		// 获取客户端配置
+		$clientConfig = $result['config']['client']??[];
+		
+		if ($clientConfig){
+			$configApp = $result['config']['app']??[];
+			if ($configApp){
+				$clientConfig = array_merge($clientConfig, $configApp);
+			}
+			$configVersion = $result['vetsion']??[];
+			
+			if (!$configVersion){
+				$clientConfig = array_merge($clientConfig, $configVersion);
+			}
+			
+			if (Helpers::$config){
+				$clientConfig = array_merge($clientConfig, Helpers::$config);
+			}
+			Helpers::$config = $clientConfig;
+		}
+		// 获取过滤的目录
+		$ignoreBackupFiles = Helpers::getIgnoreBackupFiles();
+		Helpers::output('开始执行升级程序:应用ID:' . $appId . ', 版本号:' . $version, 'info', 10);
+		 
 		Helpers::output('正在获取更新应用信息' . $appId . ', 版本号:' . $version, 'info', 20);
 		Helpers::output(json_encode($result, JSON_UNESCAPED_UNICODE));
 		$versionInfo = isset($result['versionInfo']) ? $result['versionInfo'] : [];
@@ -71,6 +95,19 @@ class Kernel {
 		try {
 			// 操作更新
 			$files        = isset($result['files']) ? $result['files'] : [];
+			$upgradeFiles = [];
+			foreach ($files as $upgradeFileFullPath) {
+				$path     = str_replace($projectPath, '', $upgradeFileFullPath);
+				if (in_array($path, $ignoreBackupFiles)){
+					continue;
+				}
+				$upgradeFiles[] = [
+					'path'     => $path,
+					'fullPath' => $fileFullPath
+				];
+			}
+			$files = $upgradeFiles;
+			
 			$url          = $result['url'];
 			$fileName     = isset($result['fileName']) ? $result['fileName'] : 'app-vcs-upgrade.zip';
 			$tempFilePath = Helpers::getTempFilePath($upgradeVersion);
@@ -97,30 +134,12 @@ class Kernel {
 			}
 			
 			$zipFile = Helpers::getZipPath() . '/' . $fileName;
-			
 			$destinationDir = Helpers::getProjectPath();
-			
 			
 			// 1.备份文件
 			// 如果是全量发布， 那么备份全部文件
-			if (intval($publishAction) === 1) {
-				// 全量发布需要删除原先代码, 然后将新的文件下载到目录下
-				$projectFiles = FileSystem::getAllFiles($projectPath, false);
-				$_files       = [];
-				
-				foreach ($projectFiles as $fileFullPath) {
-					$path     = str_replace($projectPath, '', $fileFullPath);
-					$_files[] = [
-						'path'     => $path,
-						'fullPath' => $fileFullPath
-					];
-				}
-				$backupStatus = Backup::file($_files, $result);
-				
-			} else {
-				$backupStatus = Backup::file($files, $result);
-			}
 			
+			$backupStatus = Backup::fileByTar();
 			if (!$backupStatus) {
 				Helpers::output('升级失败:备份文件失败', 'error', 30);
 				return;
@@ -157,10 +176,20 @@ class Kernel {
 						exit();
 					}
 				}
+				
+				// 过滤文件
+				$filterFiles = $clientConfig['filter_files']??'';
+				$filterFiles = explode("\r\n", $filterFiles);
+				
+				$filterFiles[] = 'config/appvcs.php';
+				$filterFiles = array_filter(array_unique($filterFiles));
+				$unzipX = implode(' ', $filterFiles);
+			
 				Helpers::output('补丁包下载完成：' . $zipFile . ',正在解压文件至：' . $destinationDir, 'info', 60);
-				$command = "unzip -o {$zipFile} -d {$destinationDir}";
+				$command = "unzip -o {$zipFile} -d {$destinationDir} -x $unzipX ";
 				exec($command, $unzipOutput, $returnVar);
 				Helpers::output($command, 'debug');
+				
 				if ($returnVar === 0) {
 					Helpers::output("[成功]解压补丁包【{$zipFile}】完成!!!，解压至:{$destinationDir}", 'success', 30);
 				} else {
@@ -183,6 +212,7 @@ class Kernel {
 					$state = $file['state'];
 					$path  = $file['path'];
 					$type  = $file['type'];
+					$path = $path['path']??$path;
 					Helpers::output("正在迁移文件：{$path}-{$state}-{$type}", 'debug');
 					if (!$path) {
 						continue;
@@ -194,32 +224,37 @@ class Kernel {
 					
 					// 安全文件只运行不下载
 					$safeFileOrDirs = [Helpers::getDatabaseSqlPath($upgradeVersion)];
-					if (isset($versionInfo['safe_files']) && is_array($versionInfo['safe_files']) && $versionInfo['safe_files']) {
-						$safeFileOrDirs = array_merge($safeFileOrDirs, $versionInfo['safe_files']);
+					$safeFiles = $clientConfig['safe_files']??'';
+					if (  is_array($safeFiles) && $safeFiles) {
+						$safeFileOrDirs = array_merge($safeFileOrDirs, $safeFiles);
 					}
 					Helpers::output('安全文件', 'debug');
 					Helpers::output(json_encode($safeFileOrDirs, JSON_UNESCAPED_UNICODE), 'debug');
-					// 过滤文件
-					$filterFiles = isset($versionInfo['filter_files']) ? $versionInfo['filter_files'] : [];
-					if (!$filterFiles) {
-						$filterFiles = [];
-					}
-					Helpers::output('过滤文件', 'debug');
-					Helpers::output(json_encode($filterFiles, JSON_UNESCAPED_UNICODE), 'debug');
-					// 存在指定过滤文件， 那么直接过滤
-					if (in_array($path, $filterFiles)) {
-						Helpers::output('已过滤：' . $path . '，文件', 'warning');
-						continue;
-					}
 					
-					// 如果包含， 也过滤
-					foreach ($filterFiles as $filterFileItem) {
-						$isContains = strpos($path, $filterFileItem) !== false;
-						if (!$isContains) {
-							Helpers::output('已过滤：' . $path . '，文件(包含)', 'warning');
-							continue 2;
+					if ($filterFiles){
+						
+						Helpers::output('过滤文件', 'debug');
+						
+						Helpers::output(json_encode($filterFiles, JSON_UNESCAPED_UNICODE), 'debug');
+						
+						// 存在指定过滤文件， 那么直接过滤
+						if (in_array($path, $filterFiles)) {
+							Helpers::output('已过滤：' . $path . '，文件', 'warning');
+							continue;
+						}
+						
+						// 如果包含， 也过滤
+						foreach ($filterFiles as $filterFileItem) {
+							$isContains = strpos($path, $filterFileItem) !== false;
+							if (!$isContains) {
+								Helpers::output('已过滤：' . $path . '，文件(包含)', 'warning');
+								continue 2;
+							}
 						}
 					}
+					
+					
+					
 					
 					if (!in_array($path, $safeFileOrDirs)) {
 						
@@ -273,6 +308,9 @@ class Kernel {
 	
 	public static function throwError($result, $transction, $e)
 	{
+		$error = $e->getMessage() . ' in ' . $e->getFile() . '-' . $e->getLine();
+		Helpers::output('运行错误：' . $error, 'error');
+		Helpers::output($e->getTraceAsString(), 'error');
 		$errorData = [
 			'upgrade' => $result,
 		];
@@ -282,9 +320,7 @@ class Kernel {
 			'file'    => $e->getFile(),
 			'line'    => $e->getLine()
 		]);
-		$error = $e->getMessage() . ' in ' . $e->getFile() . '-' . $e->getLine();
-		Helpers::output('运行错误：' . $error, 'error');
-		Helpers::output($e->getTraceAsString(), 'error');
+		
 		
 		
 		return;
