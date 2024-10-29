@@ -40,8 +40,8 @@ class Helpers {
 	public static function getWorkPath()
 	{
 		$rootPath = static::getRootPath();
-		if (self::$config['work_path']??''){
-			static::$workPath =static::$config['work_path'];
+		if (self::$config['work_path'] ?? '') {
+			static::$workPath = static::$config['work_path'];
 		}
 		$workPath = $rootPath . '/' . static::$workPath . '/' . self::getAppId();
 		// var_dump(static::$config['work_path']);die;
@@ -60,8 +60,8 @@ class Helpers {
 	{
 		$rootPath     = self::getWorkPath();
 		$tempFilePath = $rootPath . '/temp/' . $upgradeVersion;
-		if (static::$config['temp_file_path']??''){
-			$tempFilePath = $rootPath .'/'.static::$config['temp_file_path'].'/'. $upgradeVersion;
+		if (static::$config['temp_file_path'] ?? '') {
+			$tempFilePath = $rootPath . '/' . static::$config['temp_file_path'] . '/' . $upgradeVersion;
 		}
 		is_dir($tempFilePath) or mkdir($tempFilePath, 0755, true);
 		return $tempFilePath;
@@ -129,9 +129,9 @@ class Helpers {
 	public static function generatedDatabaseSqlFilename($version)
 	{
 		$databaseSqlDir = self::getDatabaseSqlPath($version);
-		$file = $databaseSqlDir . '/mysql.sql';
-		if (!file_exists($file)){
-			$file = Helpers::getProjectPath()."/deploy/{$version}/database/mysql.sql";
+		$file           = $databaseSqlDir . '/mysql.sql';
+		if (!file_exists($file)) {
+			$file = Helpers::getProjectPath() . "/deploy/{$version}/database/mysql.sql";
 		}
 		return $file;
 	}
@@ -216,7 +216,7 @@ class Helpers {
 		$rootPath         = self::getWorkPath();
 		$configBackupPath = self::config('backup_path');
 		if ($configBackupPath) {
-			$backupPath = $rootPath .'/'.$configBackupPath. '/' . self::getVersion();
+			$backupPath = $rootPath . '/' . $configBackupPath . '/' . self::getVersion();
 		} else {
 			// 在服务端目录上一级保存, 以免出现全量发布, 未指定项目目录或默认目录导致备份文件一同被删除情况
 			$backupPath = $rootPath . '/backup/' . self::getVersion();
@@ -231,17 +231,18 @@ class Helpers {
 		$appId    = Helpers::getAppId();
 		return $rootPath . "/{$appId}-version.txt";
 	}
+	
 	public static function getIgnoreBackupFiles()
 	{
-		$ignoreBackupFiles =  self::config('ignore_backup_files');
+		$ignoreBackupFiles = self::config('ignore_backup_files');
 		
 		$result = explode("\r\n", $ignoreBackupFiles);
 		// 获取插件工作目录
-		$result[] = self::getWorkPath().'/*';
-		$result[] = self::getBackupPath().'/*';
+		$result[] = self::getWorkPath() . '/*';
+		$result[] = self::getBackupPath() . '/*';
 		return $result;
 	}
-
+	
 	
 	public static function getVersion()
 	{
@@ -302,14 +303,16 @@ class Helpers {
 		return $ip;
 	}
 	
-	static function findSqlComments($sqlText) {
+	static function findSqlComments($sqlText)
+	{
 		preg_match_all('/--.*$|#.*$|^\/\*.*?\*\//s', $sqlText, $matches);
 		
-		return( $matches[0])?true:false;
+		return ($matches[0]) ? true : false;
 	}
-	public static function output($msg, $type = 'info', $progress=null)
+	
+	public static function output($msg, $type = 'info', $progress = null)
 	{
-		if (!is_null($progress)){
+		if (!is_null($progress)) {
 			Helpers::setProgress($progress);
 		}
 		
@@ -343,7 +346,8 @@ class Helpers {
 		
 		static::output('读取配置:');
 		foreach (Helpers::config() as $configkey => $configValue) {
-			static::output($configkey . ":" . (is_array($configValue)?json_encode($configValue,JSON_UNESCAPED_UNICODE):$configValue));
+			static::output($configkey . ':' . (is_array($configValue) ? json_encode($configValue,
+					JSON_UNESCAPED_UNICODE) : $configValue));
 		}
 		return true;
 	}
@@ -353,7 +357,7 @@ class Helpers {
 		$projectId = self::config('project_id');
 		if (!$projectId) {
 			$projectDir = self::getRootPath();
-			$d = explode('/', dirname($projectDir));
+			$d          = explode('/', dirname($projectDir));
 			$projectId  = end($d);
 		}
 		return $projectId;
@@ -389,6 +393,7 @@ class Helpers {
 		}
 		return true;
 	}
+	
 	/**
 	 * 删除空文件夹
 	 * @param      $dir
@@ -426,49 +431,48 @@ class Helpers {
 		return $tempFilePath . '/progress.txt';
 	}
 	
-	public static function getProgress($upgradeVersion=null)
+	public static function getProgress($upgradeVersion = null)
 	{
 		$progressFile = self::getProgressFile($upgradeVersion);
 		return file_get_contents($progressFile);
 	}
+	
 	public static function setProgress($value)
 	{
 		$upgradeVersion = self::getVersion();
-		$progressFile = self::getProgressFile($upgradeVersion);
+		$progressFile   = self::getProgressFile($upgradeVersion);
 		file_put_contents($progressFile, $value);
 	}
 	
 	
-	
-	public static function logWrite($content, $type='info', $custom=false)
+	public static function logWrite($content, $type = 'info', $custom = false)
 	{
 		$fileName = '';
 		$rootPath = self::getRootPath();
-		$appId = self::getAppId();
-		$id = isset(self::$config['id'])?self::$config['id']:'';
-		
-		if ($rootPath && $appId && $id){
-			$name = md5($appId.'-'.$id);
-			$logName = "{$name}.log";
-			$storagePath =Helpers::getWorkPath(). "/{$appId}/log";
+		$appId    = self::getAppId();
+		$id       = isset(self::$config['id']) ? self::$config['id'] : '';
+		if ($rootPath && $appId && $id) {
+			$name        = md5($appId . '-' . $id);
+			$logName     = "{$name}.log";
+			$storagePath = Helpers::getWorkPath() . '/log';
 			is_dir($storagePath) or mkdir($storagePath, 0775, true);
-			$fileName = $storagePath.'/'.$logName;
+			$fileName = $storagePath . '/' . $logName;
 		}
-		if (!$fileName){
-			return ;
+		if (!$fileName) {
+			return;
 		}
 		$date = date('Y-m-d H:i:s');
-		$ip = self::get_client_ip();
-		if ($custom){
-			$msg = $content."\n";
-			file_put_contents($fileName,  $content."\n", FILE_APPEND);
-		}else{
-			$msg = "[ $type ][{$date}] {$ip} ".$content."\n";
-			file_put_contents($fileName, "[ $type ][{$date}] {$ip} ".$content."\n", FILE_APPEND);
+		$ip   = self::get_client_ip();
+		if ($custom) {
+			$msg = $content . "\n";
+			file_put_contents($fileName, $content . "\n", FILE_APPEND);
+		} else {
+			$msg = "[ $type ][{$date}] {$ip} " . $content . "\n";
+			file_put_contents($fileName, "[ $type ][{$date}] {$ip} " . $content . "\n", FILE_APPEND);
 		}
 		return $msg;
 	}
-
+	
 	static function get_client_ip()
 	{
 		$ipaddress = '';
@@ -499,6 +503,6 @@ class Helpers {
 	{
 		$name = self::getBackupZipName();
 		$path = self::getBackupPath();
-		return  $path.'/'.$name;
+		return $path . '/' . $name;
 	}
 }
