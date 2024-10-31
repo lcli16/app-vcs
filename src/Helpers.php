@@ -327,13 +327,13 @@ class Helpers {
 					$cli->success($msg);
 					break;
 				case 'warning':
-					$cli->success($msg);
+					$cli->warning($msg);
 					break;
 				case 'debug':
-					$cli->success($msg);
+					$cli->debug($msg);
 					break;
 				default:
-					$cli->success($msg);
+					$cli->info($msg);
 					break;
 			}
 		}

@@ -74,9 +74,16 @@ class Kernel {
 			}
 			
 			if (Helpers::$config){
-				$clientConfig = array_merge($clientConfig, Helpers::$config);
+				$clientConfig = array_merge(Helpers::$config, $clientConfig);
 			}
-			Helpers::$config = $clientConfig;
+			Config::setConfigs($clientConfig);
+		}
+		// 检查环境
+		Helpers::output('正在检查环境', 'debug', 5);
+		$isPass = Check::run();
+		if (!$isPass){
+			Helpers::output('环境检查不通过！请调整后重试！', 'error', 5);
+			return $isPass;
 		}
 		// 获取过滤的目录
 		$ignoreBackupFiles = Helpers::getIgnoreBackupFiles();

@@ -5,6 +5,7 @@ namespace Lcli\AppVcs\Cli;
 use Lcli\AppVcs\AppVcsException;
 use Lcli\AppVcs\Helpers;
 use Lcli\AppVcs\Kernel\Backup;
+use Lcli\AppVcs\Kernel\Config;
 use Lcli\AppVcs\Kernel\FileSystem;
 use Lcli\AppVcs\Kernel\Kernel;
 use Lcli\AppVcs\Kernel\Request;
@@ -191,17 +192,8 @@ BANNER;
 	public function setConfig($name, $value)
 	{
 		$this->config[$name] = $value;
-		
 		$config = $this->config;
-		foreach ($config as $key => $val) {
-			$systemConfig = Helpers::$config;
-			if (isset($systemConfig[$key]) && (!$val && $systemConfig[$key])) {
-				$config[$key] = $systemConfig[$key];
-			} else {
-				$config[$key] = $val;
-			}
-		}
-		Helpers::$config = $config;
+		Config::setConfigs($config);
 	}
 	
 	public function init()
